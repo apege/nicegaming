@@ -1,26 +1,144 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg-dark: #070714;
+  --bg-card: rgba(14, 16, 38, 0.85);
+  --border-card: rgba(255, 30, 120, 0.22);
+  --accent-pink: #ff1b7a;
+  --accent-pink-glow: rgba(255, 27, 122, 0.45);
+  --accent-cyan: #00d2ff;
+  --accent-cyan-glow: rgba(0, 210, 255, 0.4);
+  --robux-green: #00e676;
+  --robux-green-glow: rgba(0, 230, 118, 0.4);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #070714;
+  color: #f3f4f6;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #070714;
+}
+::-webkit-scrollbar-thumb {
+  background: #232746;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff1b7a;
+}
+
+/* Custom Neon and Glow Utilities */
+.neon-border-pink {
+  border-color: #ff1b7a;
+  box-shadow: 0 0 15px rgba(255, 27, 122, 0.3), inset 0 0 10px rgba(255, 27, 122, 0.15);
+}
+
+.neon-border-cyan {
+  border-color: #00d2ff;
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.3), inset 0 0 10px rgba(0, 210, 255, 0.15);
+}
+
+.neon-border-green {
+  border-color: #00e676;
+  box-shadow: 0 0 15px rgba(0, 230, 118, 0.3), inset 0 0 10px rgba(0, 230, 118, 0.15);
+}
+
+.neon-text-pink {
+  color: #ff2e93;
+  text-shadow: 0 0 12px rgba(255, 46, 147, 0.6), 0 0 24px rgba(255, 46, 147, 0.3);
+}
+
+.neon-text-cyan {
+  color: #00d2ff;
+  text-shadow: 0 0 12px rgba(0, 210, 255, 0.6), 0 0 24px rgba(0, 210, 255, 0.3);
+}
+
+.neon-btn-pink {
+  background: linear-gradient(135deg, #ff1b7a 0%, #d81159 100%);
+  box-shadow: 0 0 20px rgba(255, 27, 122, 0.45);
+  transition: all 0.25s ease;
+}
+
+.neon-btn-pink:hover {
+  background: linear-gradient(135deg, #ff3388 0%, #e91e63 100%);
+  box-shadow: 0 0 30px rgba(255, 27, 122, 0.75);
+  transform: translateY(-2px);
+}
+
+.glass-card {
+  background: rgba(13, 15, 36, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-pink {
+  background: rgba(16, 18, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 27, 122, 0.3);
+}
+
+.glass-card-pink:hover {
+  border-color: rgba(255, 27, 122, 0.6);
+  box-shadow: 0 0 25px rgba(255, 27, 122, 0.25);
+}
+
+/* Background Cyber Grid */
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Diagonal Stripe Texture for Headers */
+.cyber-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 27, 122, 0.1),
+    rgba(255, 27, 122, 0.1) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
