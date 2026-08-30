@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="id"
       className={`${jakartaSans.variable} ${orbitron.variable} dark scroll-smooth`}
     >
-      <body className="min-h-screen bg-[#070714] text-gray-100 flex flex-col font-sans selection:bg-[#ff1b7a] selection:text-white">
+      <body className="min-h-screen bg-[#070714] text-gray-100 flex flex-col font-sans selection:bg-[#ff1b7a] selection:text-white overflow-x-hidden">
         {children}
       </body>
     </html>
