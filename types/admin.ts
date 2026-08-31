@@ -67,4 +67,9 @@ export interface AdminStoreSettings {
   noticeBanner: string;
   qrisActive: boolean;
   whatsappOrderActive: boolean;
+  promoRobux?: string;
+  promoPrice?: string;
+  promoNormalPrice?: string;
+  promoEndDate?: string;
+  isPromoActive?: boolean;
 }
