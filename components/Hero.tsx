@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ArrowRight, ChevronDown, Zap, ShieldCheck, Flame } from "lucide-react";
 
@@ -10,6 +10,7 @@ interface HeroProps {
   promoPrice?: string;
   promoNormalPrice?: string;
   promoEndDate?: string;
+  storeName?: string;
 }
 
 export default function Hero({
@@ -18,15 +19,54 @@ export default function Hero({
   promoPrice = "45.000",
   promoNormalPrice = "55.000",
   promoEndDate = "05 September 2026",
+  storeName = "NiceGaming",
 }: HeroProps) {
+  const [activePromo, setActivePromo] = useState(isPromoActive);
+  const [robuxNominal, setRobuxNominal] = useState(promoRobux);
+  const [discountPrice, setDiscountPrice] = useState(promoPrice);
+  const [normalLabel, setNormalLabel] = useState(promoNormalPrice);
+  const [endDateLabel, setEndDateLabel] = useState(promoEndDate);
+
+  useEffect(() => {
+    async function loadPromoSettings() {
+      try {
+        const res = await fetch("/api/store-settings", { cache: "no-store" });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          setActivePromo(Boolean(d.promo_active));
+          if (d.promo_robux_amount) {
+            setRobuxNominal(Number(d.promo_robux_amount).toLocaleString("id-ID"));
+          }
+          if (d.promo_discount_price) {
+            setDiscountPrice(Number(d.promo_discount_price).toLocaleString("id-ID"));
+          }
+          if (d.promo_original_label) {
+            setNormalLabel(d.promo_original_label);
+          }
+          if (d.promo_end_date) {
+            setEndDateLabel(
+              new Date(d.promo_end_date).toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error loading promo settings:", err);
+      }
+    }
+    loadPromoSettings();
+  }, []);
+
   return (
     <section className="relative z-10 pt-8 pb-16 lg:pt-14 lg:pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
           {/* Left Column (Hero Text & CTA) */}
           <div className="lg:col-span-7 space-y-6 text-left relative">
-            
             {/* Mobile Ambient Watermark Logo */}
             <div className="lg:hidden absolute -right-4 -top-6 w-48 h-48 sm:w-60 sm:h-60 pointer-events-none opacity-25 filter drop-shadow-[0_0_25px_rgba(255,27,122,0.6)] z-0">
               <Image
@@ -59,24 +99,29 @@ export default function Hero({
 
             {/* Dynamic Description & Promo Headline */}
             <div className="relative z-10">
-              {isPromoActive ? (
-                <div className="space-y-2.5">
+              {activePromo ? (
+                <div className="space-y-2.5 animate-fadeIn">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/35 text-[11px] font-black uppercase text-[#ff1b7a] shadow-[0_0_12px_rgba(255,27,122,0.25)]">
                     <Flame className="w-3.5 h-3.5 text-[#ff1b7a]" />
                     <span>Promo Spesial Hari Ini</span>
                   </div>
                   <p className="text-gray-200 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed">
-                    ⚡ Dapatkan promo spesial <span className="text-white font-extrabold">{promoRobux} Robux</span> cuma{" "}
-                    <span className="text-[#00e676] font-black">Rp {promoPrice}</span>{" "}
-                    <span className="line-through text-gray-400 text-xs sm:text-sm">Rp {promoNormalPrice}</span>. Berlaku hingga{" "}
-                    <span className="text-amber-300 font-bold">{promoEndDate}</span> hanya di{" "}
-                    <span className="text-white font-bold">NiceGaming</span>.
+                    ⚡ Dapatkan promo spesial{" "}
+                    <span className="text-white font-extrabold">{robuxNominal} Robux</span>{" "}
+                    cuma{" "}
+                    <span className="text-[#00e676] font-black">Rp {discountPrice}</span>{" "}
+                    <span className="line-through text-gray-400 text-xs sm:text-sm">
+                      {normalLabel.startsWith("Rp") ? normalLabel : `Rp ${normalLabel}`}
+                    </span>
+                    . Berlaku hingga{" "}
+                    <span className="text-amber-300 font-bold">{endDateLabel}</span>{" "}
+                    hanya di <span className="text-white font-bold">{storeName}</span>.
                   </p>
                 </div>
               ) : (
-                <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed">
+                <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed animate-fadeIn">
                   Top up game favoritmu dengan harga terbaik, proses cepat, dan aman 100% di{" "}
-                  <span className="text-white font-bold">NiceGaming</span>.
+                  <span className="text-white font-bold">{storeName}</span>.
                 </p>
               )}
             </div>
@@ -119,12 +164,11 @@ export default function Hero({
           {/* Right Column (Hero 3D Mascot & Logo Visual - Desktop Only) */}
           <div className="hidden lg:flex lg:col-span-5 items-center justify-center relative">
             <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center">
-              
               {/* Cybernetic Outer Rings */}
               <div className="absolute inset-0 rounded-full border-2 border-pink-500/20 animate-pulse-slow"></div>
               <div className="absolute inset-4 rounded-full border border-cyan-500/30"></div>
               <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-pink-600/20 via-purple-600/10 to-cyan-500/20 blur-xl"></div>
-              
+
               {/* Glowing Aura */}
               <div className="absolute w-72 h-72 rounded-full bg-gradient-to-r from-[#ff1b7a]/40 to-[#00d2ff]/40 blur-3xl"></div>
 
@@ -158,7 +202,6 @@ export default function Hero({
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>

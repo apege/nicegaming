@@ -1,8 +1,16 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { ADMIN_PHONE } from "@/constants";
 
-export default function FloatingWidget() {
+interface FloatingWidgetProps {
+  adminWhatsapp?: string;
+}
+
+export default function FloatingWidget({ adminWhatsapp }: FloatingWidgetProps) {
+  const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
+
   return (
     <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
       {/* Speech Bubble */}
@@ -15,7 +23,7 @@ export default function FloatingWidget() {
 
       {/* Mascot Avatar Button */}
       <a
-        href={`https://wa.me/${ADMIN_PHONE}?text=Halo%20Admin%20NiceGaming,%20saya%20butuh%20bantuan.`}
+        href={`https://wa.me/${targetPhone}?text=Halo%20Admin%20NiceGaming,%20saya%20butuh%20bantuan.`}
         target="_blank"
         rel="noopener noreferrer"
         className="relative group w-14 h-14 rounded-full bg-gradient-to-tr from-[#ff1b7a] to-[#00d2ff] p-0.5 shadow-[0_0_25px_rgba(255,27,122,0.6)] hover:scale-110 transition-transform duration-300 flex items-center justify-center cursor-pointer"

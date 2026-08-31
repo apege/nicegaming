@@ -1,22 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronDown, ShieldCheck, Zap, CreditCard, Sparkles } from "lucide-react";
 import { RobuxPackage } from "@/types";
-import { ROBUX_PACKAGES } from "@/constants";
+import { ROBUX_PACKAGES as FALLBACK_PACKAGES } from "@/constants";
 
 interface RobuxCatalogProps {
   selectedPackage: RobuxPackage;
   onSelectPackage: (pkg: RobuxPackage) => void;
+  packages?: RobuxPackage[];
 }
 
 export default function RobuxCatalog({
   selectedPackage,
   onSelectPackage,
+  packages: propPackages,
 }: RobuxCatalogProps) {
+  const [packages, setPackages] = useState<RobuxPackage[]>(propPackages || FALLBACK_PACKAGES);
   const [showAllPackages, setShowAllPackages] = useState(false);
-  const displayedPackages = showAllPackages ? ROBUX_PACKAGES : ROBUX_PACKAGES.slice(0, 6);
+
+  useEffect(() => {
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch(`/api/products?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped: RobuxPackage[] = json.data
+            .filter((p: any) => p.is_active !== false)
+            .map((p: any) => ({
+              id: Number(p.id),
+              robux: Number(p.robux),
+              price: Number(p.price),
+              priceFormatted: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
+              isBestSeller: p.robux === 240 || p.robux === 2200,
+            }));
+          if (mapped.length > 0) {
+            setPackages(mapped);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading products:", err);
+      }
+    }
+    loadLiveProducts();
+  }, []);
+
+  const displayedPackages = showAllPackages ? packages : packages.slice(0, 6);
 
   const handleSelectPackage = (pkg: RobuxPackage) => {
     onSelectPackage(pkg);
@@ -47,7 +83,7 @@ export default function RobuxCatalog({
       {/* Package Grid - 6 Cards in 1 Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-2.5 lg:gap-3">
         {displayedPackages.map((pkg) => {
-          const isSelected = selectedPackage.id === pkg.id;
+          const isSelected = selectedPackage.id === pkg.id || selectedPackage.robux === pkg.robux;
           return (
             <div
               key={pkg.id}
@@ -71,7 +107,7 @@ export default function RobuxCatalog({
                   ROBUX
                 </span>
                 <div className="text-xl sm:text-2xl lg:text-[24px] font-black italic tracking-wide text-white font-['Orbitron',sans-serif] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                  {pkg.robux.toLocaleString()}
+                  {pkg.robux.toLocaleString("id-ID")}
                 </div>
               </div>
 
@@ -103,21 +139,23 @@ export default function RobuxCatalog({
       </div>
 
       {/* View All Packages Toggle Button */}
-      <div className="text-center pt-2">
-        <button
-          type="button"
-          onClick={() => setShowAllPackages(!showAllPackages)}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#090b22] border border-white/15 hover:border-pink-500/60 text-xs font-bold tracking-wider uppercase text-gray-200 hover:text-white hover:shadow-[0_0_15px_rgba(255,27,122,0.3)] transition-all cursor-pointer"
-        >
-          <span>{showAllPackages ? "TAMPILKAN LEBIH SEDIKIT" : "LIHAT SEMUA PAKET"}</span>
-          <ChevronDown
-            size={14}
-            className={`transition-transform duration-300 ${
-              showAllPackages ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-      </div>
+      {packages.length > 6 && (
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            onClick={() => setShowAllPackages(!showAllPackages)}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#090b22] border border-white/15 hover:border-pink-500/60 text-xs font-bold tracking-wider uppercase text-gray-200 hover:text-white hover:shadow-[0_0_15px_rgba(255,27,122,0.3)] transition-all cursor-pointer"
+          >
+            <span>{showAllPackages ? "TAMPILKAN LEBIH SEDIKIT" : "LIHAT SEMUA PAKET"}</span>
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-300 ${
+                showAllPackages ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+      )}
 
       {/* Mini Section: Kenapa Pilih NiceGaming */}
       <div className="pt-8 space-y-4">

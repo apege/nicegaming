@@ -1,7 +1,15 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { MessageCircle } from "lucide-react";
 import { ADMIN_PHONE } from "@/constants";
+import { formatStoreNameParts } from "./Navbar";
+
+interface FooterProps {
+  adminWhatsapp?: string;
+  storeName?: string;
+}
 
 // Clean Instagram Icon Component
 const InstagramIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
@@ -22,7 +30,11 @@ const InstagramIcon = ({ size = 18, className = "" }: { size?: number; className
   </svg>
 );
 
-export default function Footer() {
+export default function Footer({ adminWhatsapp, storeName = "NiceGaming" }: FooterProps) {
+  const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
+
+  const { prefix, suffix } = formatStoreNameParts(storeName);
+
   return (
     <footer id="kontak" className="relative z-10 bg-[#04050d] border-t border-white/10 pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,13 +45,14 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <Image
                 src="/logo.png"
-                alt="NiceGaming Logo"
+                alt={`${storeName} Logo`}
                 width={44}
                 height={44}
                 className="object-contain"
               />
               <span className="font-extrabold text-xl tracking-wider text-white font-['Orbitron',sans-serif]">
-                NICE<span className="text-[#00d2ff]">GAMING</span>
+                {prefix}
+                {suffix && <span className="text-[#00d2ff]"> {suffix}</span>}
               </span>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed max-w-sm">
@@ -56,7 +69,7 @@ export default function Footer() {
                 <InstagramIcon size={18} />
               </a>
               <a
-                href={`https://wa.me/${ADMIN_PHONE}`}
+                href={`https://wa.me/${targetPhone}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:border-[#00e676]/50 hover:bg-[#00e676]/10 hover:text-[#00e676] transition-all"
@@ -96,9 +109,9 @@ export default function Footer() {
 
         {/* Copyright & Disclaimer */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400">
-          <p>&copy; {new Date().getFullYear()} NiceGaming. All Rights Reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {storeName}. All Rights Reserved.</p>
           <p className="text-gray-400">
-            Roblox is a registered trademark of Roblox Corporation. NiceGaming is an independent service.
+            Roblox is a registered trademark of Roblox Corporation. {storeName} is an independent service.
           </p>
         </div>
       </div>

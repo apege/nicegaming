@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import FeatureBar from "@/components/FeatureBar";
@@ -15,16 +15,71 @@ import FloatingWidget from "@/components/FloatingWidget";
 import QrisModal from "@/components/QrisModal";
 import OrderModal from "@/components/OrderModal";
 import { RobuxPackage, RobloxUser } from "@/types";
-import { ROBUX_PACKAGES } from "@/constants";
 
 export default function LandingPage() {
-  const [selectedPackage, setSelectedPackage] = useState<RobuxPackage>(ROBUX_PACKAGES[2]); // 240 Robux (Best Seller)
+  const [packages, setPackages] = useState<RobuxPackage[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<RobuxPackage>({
+    id: 1,
+    robux: 80,
+    price: 1600,
+    priceFormatted: "Rp 1.600",
+  });
+  const [adminWhatsapp, setAdminWhatsapp] = useState("6282343927560");
+  const [storeName, setStoreName] = useState("NiceGaming");
+
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [activeInvoice, setActiveInvoice] = useState("");
   const [activeUserId, setActiveUserId] = useState("");
   const [activeWhatsapp, setActiveWhatsapp] = useState("");
   const [activeRobloxUser, setActiveRobloxUser] = useState<RobloxUser | null>(null);
+
+  useEffect(() => {
+    async function loadInitialData() {
+      try {
+        const [prodRes, setRes] = await Promise.all([
+          fetch(`/api/products?_t=${Date.now()}`, {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          }),
+          fetch(`/api/store-settings?_t=${Date.now()}`, {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          }),
+        ]);
+
+        const prodJson = await prodRes.json();
+        if (prodJson.success && Array.isArray(prodJson.data) && prodJson.data.length > 0) {
+          const mapped: RobuxPackage[] = prodJson.data
+            .filter((p: any) => p.is_active !== false)
+            .map((p: any) => ({
+              id: Number(p.id),
+              robux: Number(p.robux),
+              price: Number(p.price),
+              priceFormatted: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
+              isBestSeller: p.robux === 240 || p.robux === 2200,
+            }));
+          if (mapped.length > 0) {
+            setPackages(mapped);
+            setSelectedPackage(mapped[0]);
+          }
+        }
+
+        const setJson = await setRes.json();
+        if (setJson.success && setJson.data) {
+          if (setJson.data.whatsapp_number) {
+            setAdminWhatsapp(setJson.data.whatsapp_number);
+          }
+          if (setJson.data.store_name) {
+            setStoreName(setJson.data.store_name);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading store data:", err);
+      }
+    }
+    loadInitialData();
+  }, []);
 
   const handleOpenQrisModal = (
     invId: string,
@@ -61,8 +116,8 @@ export default function LandingPage() {
       <div className="absolute top-[800px] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[#ff1b7a]/10 rounded-full blur-[180px] pointer-events-none z-0"></div>
 
       {/* Modular Section Components */}
-      <Navbar />
-      <Hero />
+      <Navbar storeName={storeName} />
+      <Hero storeName={storeName} />
       <FeatureBar />
 
       {/* Main Topup Section */}
@@ -71,6 +126,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8">
               <RobuxCatalog
+                packages={packages}
                 selectedPackage={selectedPackage}
                 onSelectPackage={setSelectedPackage}
               />
@@ -80,6 +136,7 @@ export default function LandingPage() {
                 selectedPackage={selectedPackage}
                 onOpenQrisModal={handleOpenQrisModal}
                 onOpenSuccessModal={handleOpenSuccessModal}
+                adminWhatsapp={adminWhatsapp}
               />
               <TrustedPlayers />
             </div>
@@ -90,8 +147,8 @@ export default function LandingPage() {
       <HowToOrder />
       <Testimonials />
       <Faq />
-      <Footer />
-      <FloatingWidget />
+      <Footer adminWhatsapp={adminWhatsapp} storeName={storeName} />
+      <FloatingWidget adminWhatsapp={adminWhatsapp} />
 
       {/* Checkout Modals */}
       <QrisModal
@@ -102,6 +159,7 @@ export default function LandingPage() {
         whatsapp={activeWhatsapp}
         selectedPackage={selectedPackage}
         robloxUser={activeRobloxUser}
+        adminWhatsapp={adminWhatsapp}
         onConfirmPaid={() => {
           setIsQrisModalOpen(false);
           setIsSuccessModalOpen(true);
@@ -114,6 +172,7 @@ export default function LandingPage() {
         invoiceId={activeInvoice}
         userId={activeUserId}
         selectedPackage={selectedPackage}
+        storeName={storeName}
       />
     </div>
   );

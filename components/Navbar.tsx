@@ -4,8 +4,43 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
-export default function Navbar() {
+interface NavbarProps {
+  storeName?: string;
+}
+
+export function formatStoreNameParts(name: string) {
+  if (!name) return { prefix: "NICE", suffix: "GAMING" };
+  const trimmed = name.trim();
+  if (trimmed.includes(" ")) {
+    const parts = trimmed.split(" ");
+    return {
+      prefix: parts[0].toUpperCase(),
+      suffix: parts.slice(1).join(" ").toUpperCase(),
+    };
+  }
+  const match = trimmed.match(/^([A-Z]?[a-z]+)([A-Z].*)$/);
+  if (match) {
+    return {
+      prefix: match[1].toUpperCase(),
+      suffix: match[2].toUpperCase(),
+    };
+  }
+  if (trimmed.length > 4) {
+    const mid = Math.ceil(trimmed.length / 2);
+    return {
+      prefix: trimmed.substring(0, mid).toUpperCase(),
+      suffix: trimmed.substring(mid).toUpperCase(),
+    };
+  }
+  return {
+    prefix: trimmed.toUpperCase(),
+    suffix: "",
+  };
+}
+
+export default function Navbar({ storeName = "NiceGaming" }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { prefix, suffix } = formatStoreNameParts(storeName);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#070714]/90 border-b border-white/10 transition-all duration-300">
@@ -15,7 +50,7 @@ export default function Navbar() {
           <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shrink-0">
             <Image
               src="/logo.png"
-              alt="NiceGaming Logo"
+              alt={`${storeName} Logo`}
               width={44}
               height={44}
               className="object-contain drop-shadow-[0_0_12px_rgba(255,27,122,0.6)] group-hover:scale-105 transition-transform"
@@ -24,7 +59,8 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-extrabold text-base sm:text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-pink-200 to-[#ff1b7a] font-['Orbitron',sans-serif]">
-              NICE<span className="text-[#00d2ff]">GAMING</span>
+              {prefix}
+              {suffix && <span className="text-[#00d2ff]"> {suffix}</span>}
             </span>
             <span className="text-[9px] sm:text-[10px] text-gray-400 tracking-widest font-semibold uppercase -mt-0.5 sm:-mt-1">
               Top Up Game Store

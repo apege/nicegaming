@@ -11,6 +11,7 @@ import {
   ArrowRight,
   QrCode,
   MessageCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { RobuxPackage, RobloxUser } from "@/types";
 import { PAYMENT_METHODS, ADMIN_PHONE } from "@/constants";
@@ -19,12 +20,14 @@ interface OrderFormProps {
   selectedPackage: RobuxPackage;
   onOpenQrisModal: (invId: string, user: string, wa: string, rUser: RobloxUser | null) => void;
   onOpenSuccessModal: (invId: string, user: string, wa: string, rUser: RobloxUser | null) => void;
+  adminWhatsapp?: string;
 }
 
 export default function OrderForm({
   selectedPackage,
   onOpenQrisModal,
   onOpenSuccessModal,
+  adminWhatsapp,
 }: OrderFormProps) {
   const [userId, setUserId] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -32,6 +35,8 @@ export default function OrderForm({
   const [robloxUser, setRobloxUser] = useState<RobloxUser | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [userError, setUserError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [blacklistAlert, setBlacklistAlert] = useState<string | null>(null);
 
   // Check Roblox Username and Avatar via API
   const handleCheckRobloxUser = async (customName?: string) => {
@@ -44,6 +49,7 @@ export default function OrderForm({
 
     setIsCheckingUser(true);
     setUserError(null);
+    setBlacklistAlert(null);
 
     try {
       const res = await fetch(`/api/roblox-user?username=${encodeURIComponent(target)}`);
@@ -65,8 +71,10 @@ export default function OrderForm({
     }
   };
 
-  const handleOrderSubmit = (e: React.FormEvent) => {
+  const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBlacklistAlert(null);
+
     if (!userId.trim()) {
       alert("Mohon masukkan User ID / Username Roblox Anda.");
       return;
@@ -76,24 +84,62 @@ export default function OrderForm({
       return;
     }
 
-    const generatedInv = `NG-${Math.floor(100000 + Math.random() * 900000)}`;
+    setIsSubmitting(true);
 
-    if (paymentMethod === "website_qris") {
-      onOpenQrisModal(generatedInv, userId, whatsapp, robloxUser);
-    } else {
-      const displayNameTxt = robloxUser ? ` (${robloxUser.displayName})` : "";
-      const message = `Halo Admin NiceGaming, saya ingin order Robux via WhatsApp:%0A%0A` +
-        `🧾 Invoice: ${generatedInv}%0A` +
-        `🎮 Game: Roblox%0A` +
-        `👤 Username / User ID: ${userId}${displayNameTxt}%0A` +
-        `💎 Paket: ${selectedPackage.robux} Robux%0A` +
-        `💰 Total: ${selectedPackage.priceFormatted}%0A` +
-        `📱 Nomor WA: ${whatsapp}%0A%0A` +
-        `Mohon nomor rekening / instruksi pembayarannya ya admin, terima kasih!`;
+    try {
+      // Create real order in Neon DB via API
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roblox_username: userId.trim(),
+          customer_phone: whatsapp.trim(),
+          robux: selectedPackage.robux,
+          price: selectedPackage.price,
+          payment_method: paymentMethod === "website_qris" ? "Website" : "WhatsApp",
+          roblox_user_id: robloxUser?.id ? String(robloxUser.id) : undefined,
+          customer_notes: robloxUser ? `Display Name: ${robloxUser.displayName}` : undefined,
+        }),
+      });
 
-      const whatsappUrl = `https://wa.me/${ADMIN_PHONE}?text=${message}`;
-      window.open(whatsappUrl, "_blank");
-      onOpenSuccessModal(generatedInv, userId, whatsapp, robloxUser);
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        if (data.isBlacklisted) {
+          setBlacklistAlert(data.error || "Akun atau nomor WhatsApp Anda telah diblokir.");
+        } else {
+          alert(data.error || "Gagal membuat pesanan. Silakan coba lagi.");
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      const orderCode = data.data?.order_code || `#BLX${Math.floor(100000 + Math.random() * 900000)}`;
+
+      if (paymentMethod === "website_qris") {
+        onOpenQrisModal(orderCode, userId, whatsapp, robloxUser);
+      } else {
+        const displayNameTxt = robloxUser ? ` (${robloxUser.displayName})` : "";
+        const message =
+          `Halo Admin NiceGaming, saya ingin order Robux via WhatsApp:%0A%0A` +
+          `🧾 Invoice: ${orderCode}%0A` +
+          `🎮 Game: Roblox%0A` +
+          `👤 Username / User ID: ${userId}${displayNameTxt}%0A` +
+          `💎 Paket: ${selectedPackage.robux.toLocaleString("id-ID")} Robux%0A` +
+          `💰 Total: ${selectedPackage.priceFormatted}%0A` +
+          `📱 Nomor WA: ${whatsapp}%0A%0A` +
+          `Mohon instruksi pembayarannya ya admin, terima kasih!`;
+
+        const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
+        const whatsappUrl = `https://wa.me/${targetPhone}?text=${message}`;
+        window.open(whatsappUrl, "_blank");
+        onOpenSuccessModal(orderCode, userId, whatsapp, robloxUser);
+      }
+    } catch (err) {
+      console.error("Order submit error:", err);
+      alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -114,6 +160,19 @@ export default function OrderForm({
 
       {/* Form Body */}
       <form onSubmit={handleOrderSubmit} className="p-4 sm:p-5 space-y-3">
+        {/* Blacklist Warning Banner if blocked */}
+        {blacklistAlert && (
+          <div className="bg-rose-500/20 border border-rose-500/50 rounded-xl p-3 flex items-start gap-2.5 text-xs text-rose-300 animate-fadeIn">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div>
+              <strong className="block font-black text-rose-400 uppercase tracking-wider text-[10px]">
+                Akses Ditolak / Akun Terblokir
+              </strong>
+              <span>{blacklistAlert}</span>
+            </div>
+          </div>
+        )}
+
         {/* Step 1: User ID / Username Roblox with API Check */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
@@ -137,6 +196,7 @@ export default function OrderForm({
                 setUserId(e.target.value);
                 if (robloxUser) setRobloxUser(null);
                 if (userError) setUserError(null);
+                if (blacklistAlert) setBlacklistAlert(null);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -222,7 +282,7 @@ export default function OrderForm({
                 />
               </div>
               <span className="text-xs font-black text-white">
-                {selectedPackage.robux} Robux
+                {selectedPackage.robux.toLocaleString("id-ID")} Robux
               </span>
               {selectedPackage.isBestSeller && (
                 <span className="px-1.5 py-0.2 rounded bg-[#ff1b7a] text-[8px] font-black uppercase text-white">
@@ -305,12 +365,22 @@ export default function OrderForm({
 
           <button
             type="submit"
-            className="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider text-white neon-btn-pink flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,27,122,0.5)] cursor-pointer"
+            disabled={isSubmitting}
+            className="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider text-white neon-btn-pink flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,27,122,0.5)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all"
           >
-            <span>
-              {paymentMethod === "website_qris" ? "BAYAR SEKARANG (QRIS)" : "ORDER VIA WHATSAPP"}
-            </span>
-            <ArrowRight size={15} className="stroke-[3]" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Memproses Order...</span>
+              </>
+            ) : (
+              <>
+                <span>
+                  {paymentMethod === "website_qris" ? "BAYAR SEKARANG (QRIS)" : "ORDER VIA WHATSAPP"}
+                </span>
+                <ArrowRight size={15} className="stroke-[3]" />
+              </>
+            )}
           </button>
         </div>
       </form>

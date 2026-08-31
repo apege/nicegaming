@@ -8,6 +8,7 @@ interface OrderModalProps {
   invoiceId: string;
   userId: string;
   selectedPackage: RobuxPackage;
+  storeName?: string;
 }
 
 export default function OrderModal({
@@ -16,23 +17,24 @@ export default function OrderModal({
   invoiceId,
   userId,
   selectedPackage,
+  storeName = "NiceGaming",
 }: OrderModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="glass-card-pink rounded-3xl max-w-md w-full p-6 border-2 border-pink-500/40 shadow-[0_0_40px_rgba(255,27,122,0.4)] text-center space-y-4 animate-in fade-in zoom-in duration-300">
-        <div className="w-16 h-16 rounded-full bg-[#00e676]/20 border border-[#00e676]/40 flex items-center justify-center mx-auto text-[#00e676] shadow-[0_0_20px_rgba(0,230,118,0.4)]">
-          <CheckCircle2 size={32} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="glass-card-pink rounded-3xl max-w-md w-full p-5 sm:p-6 border-2 border-pink-500/40 shadow-[0_0_40px_rgba(255,27,122,0.4)] text-center space-y-4 animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto my-auto">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#00e676]/20 border border-[#00e676]/40 flex items-center justify-center mx-auto text-[#00e676] shadow-[0_0_20px_rgba(0,230,118,0.4)]">
+          <CheckCircle2 size={30} />
         </div>
-        <h4 className="text-xl font-black uppercase tracking-wider text-white font-['Orbitron',sans-serif]">
+        <h4 className="text-lg sm:text-xl font-black uppercase tracking-wider text-white font-['Orbitron',sans-serif]">
           Pesanan Tercatat!
         </h4>
         <p className="text-xs text-gray-300 leading-relaxed">
           Pesanan untuk <span className="text-white font-bold">{selectedPackage.robux} Robux</span> (User ID: <span className="text-[#00d2ff] font-bold">{userId}</span>) telah dibuat dengan Invoice <span className="text-[#ff1b7a] font-mono font-bold">{invoiceId}</span>.
         </p>
         <p className="text-[11px] text-gray-400">
-          Admin NiceGaming akan segera memproses Robux masuk ke akun Anda dalam hitungan menit.
+          Admin {storeName} akan segera memproses Robux masuk ke akun Anda dalam hitungan menit.
         </p>
         <div className="pt-2">
           <button

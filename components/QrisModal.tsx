@@ -14,6 +14,7 @@ interface QrisModalProps {
   selectedPackage: RobuxPackage;
   robloxUser: RobloxUser | null;
   onConfirmPaid: () => void;
+  adminWhatsapp?: string;
 }
 
 export default function QrisModal({
@@ -25,6 +26,7 @@ export default function QrisModal({
   selectedPackage,
   robloxUser,
   onConfirmPaid,
+  adminWhatsapp,
 }: QrisModalProps) {
   if (!isOpen) return null;
 
@@ -38,13 +40,14 @@ export default function QrisModal({
       `📱 No WA: ${whatsapp}%0A%0A` +
       `Berikut saya sertakan bukti transfernya, mohon diproses ya!`;
 
-    window.open(`https://wa.me/${ADMIN_PHONE}?text=${message}`, "_blank");
+    const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
+    window.open(`https://wa.me/${targetPhone}?text=${message}`, "_blank");
     onConfirmPaid();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-      <div className="glass-card-pink rounded-3xl max-w-md w-full p-6 border-2 border-pink-500/50 shadow-[0_0_45px_rgba(255,27,122,0.4)] text-center space-y-4 animate-in fade-in zoom-in duration-300 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <div className="glass-card-pink rounded-3xl max-w-md w-full p-5 sm:p-6 border-2 border-pink-500/50 shadow-[0_0_45px_rgba(255,27,122,0.4)] text-center space-y-4 animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto my-auto">
         {/* Close button */}
         <button
           onClick={onClose}
