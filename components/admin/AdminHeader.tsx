@@ -10,6 +10,7 @@ interface AdminHeaderProps {
   onSearchChange: (query: string) => void;
   onOpenMobileSidebar: () => void;
   onLogout?: () => void;
+  storeName?: string;
 }
 
 export default function AdminHeader({
@@ -17,6 +18,7 @@ export default function AdminHeader({
   onSearchChange,
   onOpenMobileSidebar,
   onLogout,
+  storeName = "NiceGaming",
 }: AdminHeaderProps) {
   return (
     <header className="sticky top-0 z-30 bg-[#070918]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
@@ -55,7 +57,7 @@ export default function AdminHeader({
           </div>
           <div className="hidden md:block text-left">
             <div className="text-xs font-black text-white leading-tight">
-              Admin NiceGaming
+              Admin {storeName}
             </div>
             <div className="text-[11px] font-black text-[#00d2ff] tracking-wide">
               Super Admin

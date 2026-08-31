@@ -406,12 +406,15 @@ export default function TestimonialsManager({
                   Jumlah Robux Yang Dibeli
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   value={robuxBought}
-                  onChange={(e) => setRobuxBought(e.target.value)}
-                  placeholder="Contoh: 1800"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setRobuxBought(digits ? parseInt(digits, 10).toLocaleString("id-ID") : "");
+                  }}
+                  placeholder="Contoh: 1.800"
                   required
-                  className="w-full px-4 py-2.5 bg-[#070818] border border-white/[0.1] rounded-xl text-xs font-semibold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
+                  className="w-full px-4 py-2.5 bg-[#070918] border border-white/[0.1] rounded-xl text-xs font-semibold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
                 />
               </div>
 

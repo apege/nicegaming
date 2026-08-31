@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AdminOrder } from "@/types/admin";
 import { AdminTab } from "./AdminSidebar";
+import RobloxActivationCard from "./RobloxActivationCard";
 
 interface DashboardOverviewProps {
   orders: AdminOrder[];
@@ -163,7 +164,7 @@ export default function DashboardOverview({
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
-              {pendingOrders.length > 0 ? pendingOrders.length : 146}
+              {pendingOrders.length}
             </div>
             <div className="flex items-center gap-1 mt-2 text-xs font-black text-amber-400 group-hover:underline">
               <span>Perlu diproses</span>
@@ -187,7 +188,7 @@ export default function DashboardOverview({
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
-              {processingOrders.length > 0 ? processingOrders.length : 64}
+              {processingOrders.length}
             </div>
             <div className="flex items-center gap-1 mt-2 text-xs font-black text-[#00d2ff] group-hover:underline">
               <span>Dalam antrean gamepass</span>
@@ -211,7 +212,7 @@ export default function DashboardOverview({
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
-              {completedOrders.length > 0 ? completedOrders.length : 10}
+              {completedOrders.length}
             </div>
             <div className="flex items-center gap-1 mt-2 text-xs font-medium text-gray-400">
               <span>Dari {orders.length} total order</span>
@@ -219,6 +220,12 @@ export default function DashboardOverview({
           </div>
         </div>
       </div>
+
+      {/* ⚠️ Card Aktivasi ID Roblox Belum Aktif (Requested by Client) */}
+      <RobloxActivationCard
+        initialUsername="saprii09"
+        initialFee={97000}
+      />
 
       {/* 3. Pesanan Terbaru Card matching Image 2 */}
       <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-xs overflow-hidden">

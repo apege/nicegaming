@@ -12,20 +12,30 @@ interface PricelistModalProps {
   onSave: (data: Partial<AdminPricelistItem>) => void;
 }
 
+const formatNumberDots = (val: string): string => {
+  const digits = val.replace(/\D/g, "");
+  if (!digits) return "";
+  return parseInt(digits, 10).toLocaleString("id-ID");
+};
+
 export default function PricelistModal({
   item,
   isOpen,
   onClose,
   onSave,
 }: PricelistModalProps) {
-  const [robux, setRobux] = useState(item ? item.robux.toString() : "");
-  const [price, setPrice] = useState(item ? item.price.toString() : "");
+  const [robux, setRobux] = useState(
+    item ? item.robux.toLocaleString("id-ID") : ""
+  );
+  const [price, setPrice] = useState(
+    item ? item.price.toLocaleString("id-ID") : ""
+  );
   const [isActive, setIsActive] = useState(item ? item.isActive : true);
 
   React.useEffect(() => {
     if (item) {
-      setRobux(item.robux.toString());
-      setPrice(item.price.toString());
+      setRobux(item.robux ? item.robux.toLocaleString("id-ID") : "");
+      setPrice(item.price ? item.price.toLocaleString("id-ID") : "");
       setIsActive(item.isActive);
     } else {
       setRobux("");
@@ -46,7 +56,7 @@ export default function PricelistModal({
     }
 
     onSave({
-      id: item ? item.id : Date.now(),
+      id: item ? item.id : undefined,
       robux: r,
       price: p,
       isActive,
@@ -97,7 +107,7 @@ export default function PricelistModal({
               <input
                 type="text"
                 value={robux}
-                onChange={(e) => setRobux(e.target.value)}
+                onChange={(e) => setRobux(formatNumberDots(e.target.value))}
                 placeholder="1.000"
                 required
                 className="w-full px-5 py-3 bg-[#070918] border border-white/[0.1] rounded-full text-sm font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a] focus:ring-2 focus:ring-[#ff1b7a]/30 placeholder:text-gray-500 pr-12"
@@ -120,7 +130,7 @@ export default function PricelistModal({
               <input
                 type="text"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => setPrice(formatNumberDots(e.target.value))}
                 placeholder="20.000"
                 required
                 className="w-full pl-12 pr-5 py-3 bg-[#070918] border border-white/[0.1] rounded-full text-sm font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a] focus:ring-2 focus:ring-[#ff1b7a]/30 placeholder:text-gray-500"

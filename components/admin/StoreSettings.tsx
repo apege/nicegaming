@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Store,
@@ -12,7 +12,7 @@ import {
   Save,
   CheckCircle2,
   UploadCloud,
-  Calendar,
+  Loader2,
 } from "lucide-react";
 import { AdminStoreSettings } from "@/types/admin";
 import CustomDatePicker from "./CustomDatePicker";
@@ -27,9 +27,17 @@ export default function StoreSettings({
   onSave,
 }: StoreSettingsProps) {
   const [formData, setFormData] = useState<AdminStoreSettings>({
-    ...initialSettings,
     storeName: initialSettings.storeName || "NiceGaming",
+    storeStatus: initialSettings.storeStatus || "open",
     adminWhatsapp: initialSettings.adminWhatsapp || "6282343927560",
+    minTopup: initialSettings.minTopup || 80,
+    maxTopup: initialSettings.maxTopup || 50000,
+    ratePer1k: initialSettings.ratePer1k || 20000,
+    noticeBanner:
+      initialSettings.noticeBanner ||
+      "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!",
+    qrisActive: initialSettings.qrisActive ?? true,
+    whatsappOrderActive: initialSettings.whatsappOrderActive ?? true,
   });
 
   // Accordion state
@@ -44,15 +52,55 @@ export default function StoreSettings({
   });
 
   // Promo Banner local fields
-  const [promoRobux, setPromoRobux] = useState("2.200");
-  const [promoPrice, setPromoPrice] = useState("45.000");
-  const [promoNormalPrice, setPromoNormalPrice] = useState("55.000");
-  const [promoEndDate, setPromoEndDate] = useState("2026-09-05");
-  const [isPromoActive, setIsPromoActive] = useState(true);
+  const [promoRobux, setPromoRobux] = useState(
+    initialSettings.promoRobux || "2.200"
+  );
+  const [promoPrice, setPromoPrice] = useState(
+    initialSettings.promoPrice || "45.000"
+  );
+  const [promoNormalPrice, setPromoNormalPrice] = useState(
+    initialSettings.promoNormalPrice || "55.000"
+  );
+  const [promoEndDate, setPromoEndDate] = useState(
+    initialSettings.promoEndDate || "2026-09-05"
+  );
+  const [isPromoActive, setIsPromoActive] = useState(
+    initialSettings.isPromoActive ?? true
+  );
 
+  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const allOpen = openSections.identity && openSections.promo && openSections.qris;
+  // Sync state whenever props from parent update (e.g. after database fetch)
+  useEffect(() => {
+    if (initialSettings) {
+      setFormData({
+        storeName: initialSettings.storeName || "NiceGaming",
+        storeStatus: initialSettings.storeStatus || "open",
+        adminWhatsapp: initialSettings.adminWhatsapp || "6282343927560",
+        minTopup: initialSettings.minTopup || 80,
+        maxTopup: initialSettings.maxTopup || 50000,
+        ratePer1k: initialSettings.ratePer1k || 20000,
+        noticeBanner:
+          initialSettings.noticeBanner ||
+          "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!",
+        qrisActive: initialSettings.qrisActive ?? true,
+        whatsappOrderActive: initialSettings.whatsappOrderActive ?? true,
+      });
+
+      if (initialSettings.promoRobux) setPromoRobux(initialSettings.promoRobux);
+      if (initialSettings.promoPrice) setPromoPrice(initialSettings.promoPrice);
+      if (initialSettings.promoNormalPrice)
+        setPromoNormalPrice(initialSettings.promoNormalPrice);
+      if (initialSettings.promoEndDate)
+        setPromoEndDate(initialSettings.promoEndDate);
+      if (initialSettings.isPromoActive !== undefined)
+        setIsPromoActive(initialSettings.isPromoActive);
+    }
+  }, [initialSettings]);
+
+  const allOpen =
+    openSections.identity && openSections.promo && openSections.qris;
 
   const toggleAllSections = () => {
     if (allOpen) {
@@ -66,11 +114,26 @@ export default function StoreSettings({
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+
+    const payload: AdminStoreSettings = {
+      ...formData,
+      promoRobux,
+      promoPrice,
+      promoNormalPrice,
+      promoEndDate,
+      isPromoActive,
+    };
+
+    try {
+      await onSave(payload);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3500);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -99,7 +162,7 @@ export default function StoreSettings({
       {isSaved && (
         <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-[#00e676] text-xs font-bold flex items-center gap-2 animate-fadeIn shadow-[0_0_15px_rgba(0,230,118,0.2)]">
           <CheckCircle2 className="w-4 h-4 text-[#00e676]" />
-          <span>Pengaturan toko berhasil disimpan ke sistem!</span>
+          <span>Pengaturan toko berhasil disimpan ke database!</span>
         </div>
       )}
 
@@ -159,7 +222,7 @@ export default function StoreSettings({
                   </p>
                 </div>
 
-                {/* Field 2: Nomor WhatsApp */}
+                {/* Field 2: Nomor WhatsApp Admin CS */}
                 <div>
                   <label className="block text-xs font-black text-gray-300 mb-2">
                     Nomor WhatsApp Admin CS (Format 62...)
@@ -168,9 +231,12 @@ export default function StoreSettings({
                     type="text"
                     value={formData.adminWhatsapp}
                     onChange={(e) =>
-                      setFormData({ ...formData, adminWhatsapp: e.target.value })
+                      setFormData({
+                        ...formData,
+                        adminWhatsapp: e.target.value.replace(/[^0-9]/g, ""),
+                      })
                     }
-                    placeholder="6282343927560"
+                    placeholder="6283863946967"
                     className="w-full px-5 py-3.5 bg-[#070918] border border-white/[0.1] rounded-2xl text-sm font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a] focus:ring-2 focus:ring-[#ff1b7a]/30 transition-all placeholder:text-gray-500"
                   />
                   <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
@@ -185,7 +251,7 @@ export default function StoreSettings({
         {/* ========================================================================= */}
         {/* SECTION 2: PENGATURAN PROMO BANNER WEB PELANGGAN */}
         {/* ========================================================================= */}
-        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-xs relative z-20 transition-all">
+        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-xs relative z-10 transition-all">
           {/* Accordion Header */}
           <div
             onClick={() => toggleSection("promo")}
@@ -205,11 +271,16 @@ export default function StoreSettings({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-[11px] font-bold text-[#ff1b7a]">
+            <div className="flex items-center gap-3">
+              <div
+                className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border transition-all ${
+                  isPromoActive
+                    ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+                    : "bg-white/5 text-gray-400 border-white/10"
+                }`}
+              >
                 <span>
-                  Promo Aktif • {promoRobux} Robux (Rp {promoPrice})
-                  {promoEndDate && ` • s/d ${promoEndDate}`}
+                  Promo {isPromoActive ? "Aktif" : "Nonaktif"} • {promoRobux} Robux (Rp {promoPrice})
                 </span>
               </div>
 
@@ -250,7 +321,12 @@ export default function StoreSettings({
                   <input
                     type="text"
                     value={promoRobux}
-                    onChange={(e) => setPromoRobux(e.target.value)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      setPromoRobux(
+                        digits ? parseInt(digits, 10).toLocaleString("id-ID") : ""
+                      );
+                    }}
                     placeholder="2.200"
                     className="w-full px-4 py-3 bg-[#070918] border border-white/[0.1] rounded-2xl text-xs font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
                   />
@@ -263,7 +339,12 @@ export default function StoreSettings({
                   <input
                     type="text"
                     value={promoNormalPrice}
-                    onChange={(e) => setPromoNormalPrice(e.target.value)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      setPromoNormalPrice(
+                        digits ? parseInt(digits, 10).toLocaleString("id-ID") : ""
+                      );
+                    }}
                     placeholder="55.000"
                     className="w-full px-4 py-3 bg-[#070918] border border-white/[0.1] rounded-2xl text-xs font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
                   />
@@ -276,7 +357,12 @@ export default function StoreSettings({
                   <input
                     type="text"
                     value={promoPrice}
-                    onChange={(e) => setPromoPrice(e.target.value)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      setPromoPrice(
+                        digits ? parseInt(digits, 10).toLocaleString("id-ID") : ""
+                      );
+                    }}
                     placeholder="45.000"
                     className="w-full px-4 py-3 bg-[#070918] border border-white/[0.1] rounded-2xl text-xs font-bold text-[#ff1b7a] focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
                   />
@@ -292,45 +378,33 @@ export default function StoreSettings({
                 </div>
               </div>
 
+              {/* Teks Subtitle Banner Promo */}
               <div>
                 <label className="block text-xs font-black text-gray-300 mb-2">
-                  Teks Headline Banner Promo
+                  Teks Subtitle Banner Promo
                 </label>
-                <textarea
-                  rows={2}
+                <input
+                  type="text"
                   value={formData.noticeBanner}
                   onChange={(e) =>
                     setFormData({ ...formData, noticeBanner: e.target.value })
                   }
                   placeholder="⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!"
-                  className="w-full p-4 bg-[#070918] border border-white/[0.1] rounded-2xl text-xs font-medium text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
+                  className="w-full px-4 py-3 bg-[#070918] border border-white/[0.1] rounded-2xl text-xs font-bold text-white focus:bg-[#0c0e24] focus:outline-hidden focus:border-[#ff1b7a]"
                 />
-              </div>
-
-              {/* Preview Notice on Buyer Page */}
-              <div className="p-4 rounded-2xl bg-[#070918] border border-pink-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#00e676] animate-ping shrink-0" />
-                  <p className="text-xs text-gray-200 font-medium">
-                    <span className="font-bold text-[#ff1b7a]">Tampilan di Web Pelanggan:</span> {promoRobux} Robux cuma <span className="font-bold text-[#00e676]">Rp {promoPrice}</span> (Coret Rp {promoNormalPrice}) • Berakhir: <span className="text-amber-300 font-bold">{promoEndDate}</span>
-                  </p>
-                </div>
-                <span className="text-[10px] uppercase tracking-wider font-black px-2.5 py-1 rounded bg-pink-500/20 text-[#ff1b7a] border border-pink-500/40 shrink-0">
-                  Live Preview
-                </span>
               </div>
             </div>
           )}
         </div>
 
         {/* ========================================================================= */}
-        {/* SECTION 3: BARCODE QRIS & LOGO TOKO */}
+        {/* SECTION 3: PEMBAYARAN QRIS & ASSET TOKO */}
         {/* ========================================================================= */}
-        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-xs overflow-hidden transition-all">
+        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-xs relative z-10 transition-all">
           {/* Accordion Header */}
           <div
             onClick={() => toggleSection("qris")}
-            className="p-6 flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+            className="p-6 flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors rounded-3xl"
           >
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-[#00d2ff] flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(0,210,255,0.3)]">
@@ -338,26 +412,20 @@ export default function StoreSettings({
               </div>
               <div>
                 <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-                  BARCODE QRIS & LOGO TOKO
+                  PEMBAYARAN QRIS & ASSET TOKO
                 </h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Barcode pembayaran QRIS otomatis dan logo storefront toko
+                  Barcode QRIS pembayaran otomatis dan logo toko
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-[#00e676]">
-                <span>QRIS: Terpasang • Logo: Terpasang</span>
-              </div>
-
-              <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400">
-                {openSections.qris ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </div>
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400">
+              {openSections.qris ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
             </div>
           </div>
 
@@ -365,7 +433,7 @@ export default function StoreSettings({
           {openSections.qris && (
             <div className="px-6 pb-6 pt-2 border-t border-white/[0.05] animate-fadeIn">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
-                {/* QRIS Upload / Preview Box */}
+                {/* QRIS Upload Box */}
                 <div className="p-5 rounded-2xl bg-[#070918] border border-white/[0.08] space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-white">
@@ -424,10 +492,20 @@ export default function StoreSettings({
         <div className="flex justify-end pt-3">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff1b7a] via-[#ff2e93] to-[#d81159] hover:shadow-[0_0_25px_rgba(255,27,122,0.6)] hover:scale-[1.02] text-white font-black text-xs shadow-md transition-all cursor-pointer"
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff1b7a] via-[#ff2e93] to-[#d81159] hover:shadow-[0_0_25px_rgba(255,27,122,0.6)] hover:scale-[1.02] text-white font-black text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
-            <span>Simpan Perubahan</span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Menyimpan ke Database...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Simpan Perubahan</span>
+              </>
+            )}
           </button>
         </div>
       </form>

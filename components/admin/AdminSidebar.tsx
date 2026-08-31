@@ -45,6 +45,7 @@ interface AdminSidebarProps {
     completed: number;
     cancelled: number;
   };
+  storeName?: string;
 }
 
 export default function AdminSidebar({
@@ -53,7 +54,14 @@ export default function AdminSidebar({
   isOpen,
   onClose,
   orderCounts,
+  storeName = "NiceGaming",
 }: AdminSidebarProps) {
+  const parts = storeName.trim().split(" ");
+  const prefix = parts[0]?.toUpperCase() || "NICE";
+  const suffix =
+    parts.slice(1).join(" ")?.toUpperCase() ||
+    (storeName.length > 4 ? storeName.substring(4).toUpperCase() : "");
+
   const handleTabClick = (tab: AdminTab) => {
     onSelectTab(tab);
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -83,14 +91,15 @@ export default function AdminSidebar({
             <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(255,27,122,0.4)] border border-pink-500/40 bg-[#070714] p-1 shrink-0">
               <Image
                 src="/logo.png"
-                alt="NiceGaming Logo"
+                alt={`${storeName} Logo`}
                 fill
                 className="object-contain"
               />
             </div>
             <div>
               <span className="font-black text-base tracking-wider text-white font-['Orbitron',sans-serif] block">
-                NICE<span className="text-[#00d2ff]">GAMING</span>
+                {prefix}
+                {suffix && <span className="text-[#00d2ff]"> {suffix}</span>}
               </span>
               <p className="text-[11px] text-gray-400 font-medium tracking-wide mt-0.5">
                 Robux Control Panel

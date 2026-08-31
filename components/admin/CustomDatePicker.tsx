@@ -167,7 +167,7 @@ export default function CustomDatePicker({
 
       {/* Custom Cyber Dark Calendar Popover */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 z-50 w-76 sm:w-80 bg-[#0c0e28] text-white rounded-3xl p-4 sm:p-5 border border-pink-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.9)] backdrop-blur-2xl animate-scaleUp">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-xs sm:w-80 bg-[#0c0e28] text-white rounded-3xl p-4 sm:p-5 border border-pink-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.9)] backdrop-blur-2xl animate-scaleUp">
           {/* Calendar Navigation Header */}
           <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
             <button
