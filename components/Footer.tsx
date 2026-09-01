@@ -11,25 +11,6 @@ interface FooterProps {
   storeName?: string;
 }
 
-// Clean Instagram Icon Component
-const InstagramIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
-
 export default function Footer({ adminWhatsapp, storeName = "NiceGaming" }: FooterProps) {
   const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
 
@@ -60,22 +41,14 @@ export default function Footer({ adminWhatsapp, storeName = "NiceGaming" }: Foot
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://instagram.com"
+                href={`https://wa.me/${targetPhone}?text=Halo%20Admin%20${encodeURIComponent(storeName)},%20saya%20ingin%20tanya%20seputar%20top%20up.`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:border-pink-500/50 hover:bg-pink-500/10 hover:text-[#ff1b7a] transition-all"
-                aria-label="Instagram NiceGaming"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-[#00e676]/30 text-xs font-bold text-gray-200 hover:text-white hover:border-[#00e676] hover:bg-[#00e676]/10 hover:shadow-[0_0_15px_rgba(0,230,118,0.25)] transition-all"
+                aria-label={`WhatsApp ${storeName}`}
               >
-                <InstagramIcon size={18} />
-              </a>
-              <a
-                href={`https://wa.me/${targetPhone}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:border-[#00e676]/50 hover:bg-[#00e676]/10 hover:text-[#00e676] transition-all"
-                aria-label="WhatsApp NiceGaming"
-              >
-                <MessageCircle size={18} />
+                <MessageCircle size={17} className="text-[#00e676]" />
+                <span>WhatsApp CS Resmi</span>
               </a>
             </div>
           </div>
@@ -103,6 +76,17 @@ export default function Footer({ adminWhatsapp, storeName = "NiceGaming" }: Foot
             <p className="text-xs text-gray-400 leading-relaxed">
               Layanan Customer Support kami beroperasi 24 Jam nonstop setiap hari untuk membantu seluruh transaksi dan pertanyaan Anda.
             </p>
+            <div className="pt-1">
+              <a
+                href={`https://wa.me/${targetPhone}?text=Halo%20Admin%20${encodeURIComponent(storeName)},%20saya%20butuh%20bantuan.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0b0e27] border border-[#00e676]/40 text-xs font-bold text-[#00e676] hover:text-white hover:bg-[#00e676]/20 hover:border-[#00e676] transition-all shadow-[0_0_15px_rgba(0,230,118,0.15)]"
+              >
+                <MessageCircle size={16} />
+                <span>Chat Admin WhatsApp (24/7)</span>
+              </a>
+            </div>
           </div>
 
         </div>
