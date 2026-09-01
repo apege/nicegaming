@@ -16,6 +16,7 @@ import {
   XCircle,
   AlertCircle,
   Save,
+  MessageSquareHeart,
 } from "lucide-react";
 import { AdminOrder, OrderStatus } from "@/types/admin";
 import { AdminTab } from "./AdminSidebar";
@@ -25,6 +26,7 @@ interface OrderDetailViewProps {
   onBack: () => void;
   onUpdateStatus: (orderId: string, status: OrderStatus, notes?: string) => void;
   previousTabLabel?: string;
+  storeName?: string;
 }
 
 export default function OrderDetailView({
@@ -32,6 +34,7 @@ export default function OrderDetailView({
   onBack,
   onUpdateStatus,
   previousTabLabel = "Order Masuk",
+  storeName = "NiceGaming",
 }: OrderDetailViewProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState(order.notes || "");
@@ -160,10 +163,25 @@ export default function OrderDetailView({
             Batalkan
           </button>
 
+          {/* Kirim Link Review jika Order Selesai */}
+          {order.status === "completed" && (
+            <a
+              href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+                `Halo kak @${order.robloxUsername}! Pesanan Robux kamu dengan ID *${order.orderNumber}* (${order.robuxAmount.toLocaleString("id-ID")} Robux) telah selesai diproses ✅.\n\nBerikut link khusus untuk memberikan ulasan & rating bintang 5 kamu (1 token ulasan resmi):\n${typeof window !== "undefined" ? window.location.origin : ""}/review?token=${order.orderNumber.replace(/^#/, "")}\n\nTerima kasih banyak sudah mempercayakan top up di ${storeName}! 🙏✨`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-[#00e676] hover:bg-[#00e676] hover:text-slate-950 font-black text-xs transition-all cursor-pointer shadow-[0_0_12px_rgba(0,230,118,0.3)]"
+            >
+              <MessageSquareHeart className="w-3.5 h-3.5" />
+              <span>Kirim Link Review</span>
+            </a>
+          )}
+
           {/* Chat Pelanggan WhatsApp */}
           <a
             href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-              `Halo @${order.robloxUsername}, pesanan Robux kamu dengan ID ${order.orderNumber} sedang kami tangani dari NiceGaming Store!`
+              `Halo @${order.robloxUsername}, pesanan Robux kamu dengan ID ${order.orderNumber} sedang kami tangani dari ${storeName}!`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -240,12 +258,42 @@ export default function OrderDetailView({
           </span>
         </div>
 
-        {/* Bottom Note Box */}
-        <div className="p-4 rounded-2xl bg-[#070918] border border-white/[0.06] text-center text-xs text-gray-400 italic">
-          {order.hasProofPhoto
-            ? "Foto bukti transfer telah terverifikasi oleh sistem."
-            : "Foto bukti transfer telah dibersihkan oleh sistem retensi atau tidak diunggah."}
-        </div>
+        {/* Bukti Pembayaran / Transfer Box */}
+        {order.proofPhotoUrl ? (
+          <div className="p-4 rounded-2xl bg-[#070918] border border-emerald-500/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-black text-[#00e676]">
+                <CheckCircle2 className="w-4 h-4 text-[#00e676]" />
+                <span>Bukti Transfer Pembeli Terlampir</span>
+              </div>
+              <a
+                href={order.proofPhotoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold text-[#00d2ff] hover:underline inline-flex items-center gap-1"
+              >
+                <span>Lihat Ukuran Penuh</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+
+            <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-xs mx-auto bg-black group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={order.proofPhotoUrl}
+                alt="Bukti Transfer Pembeli"
+                className="w-full h-48 object-contain cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => window.open(order.proofPhotoUrl, "_blank")}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 rounded-2xl bg-[#070918] border border-white/[0.06] text-center text-xs text-gray-400 italic">
+            {order.hasProofPhoto
+              ? "Foto bukti transfer telah terverifikasi oleh sistem."
+              : "Foto bukti transfer belum diunggah atau transaksi via WhatsApp."}
+          </div>
+        )}
       </div>
 
       {/* 5. Informasi Pelanggan Card matching Screenshot 2 */}

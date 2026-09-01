@@ -22,12 +22,14 @@ interface DashboardOverviewProps {
   orders: AdminOrder[];
   onSelectTab: (tab: AdminTab) => void;
   onSelectOrder: (order: AdminOrder) => void;
+  storeName?: string;
 }
 
 export default function DashboardOverview({
   orders,
   onSelectTab,
   onSelectOrder,
+  storeName = "NiceGaming",
 }: DashboardOverviewProps) {
   const pendingOrders = orders.filter((o) => o.status === "pending");
   const processingOrders = orders.filter((o) => o.status === "processing");
@@ -42,25 +44,25 @@ export default function DashboardOverview({
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn">
-      {/* 1. Welcome Banner Card - Cyber Dark Hero Panel */}
-      <div className="bg-gradient-to-br from-[#101435] via-[#0d102b] to-[#07091a] rounded-3xl p-6 sm:p-8 border border-pink-500/30 shadow-[0_0_35px_rgba(255,27,122,0.15)] relative overflow-hidden">
+      {/* 1. Welcome Banner Card - Clean Cyber Hero Panel */}
+      <div className="bg-gradient-to-br from-[#101435] via-[#0d102b] to-[#07091a] rounded-3xl p-5 sm:p-7 lg:p-8 border border-pink-500/30 shadow-[0_0_35px_rgba(255,27,122,0.15)] relative overflow-hidden">
         {/* Ambient Glowing Highlights */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#ff1b7a]/15 rounded-full blur-[110px] pointer-events-none -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#00d2ff]/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10">
           {/* Top Pill Tag */}
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-pink-500/15 border border-pink-500/40 text-[#ff1b7a] text-xs font-black mb-4 shadow-[0_0_12px_rgba(255,27,122,0.25)]">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-pink-500/15 border border-pink-500/40 text-[#ff1b7a] text-xs font-black mb-3.5 shadow-[0_0_12px_rgba(255,27,122,0.25)]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>NiceGaming Admin Control</span>
+            <span>{storeName} Admin Control</span>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div className="max-w-2xl">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight mb-2">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight mb-1.5">
                 Selamat Datang di Panel Admin!
               </h1>
-              <p className="text-sm text-gray-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
                 Pantau transaksi top up Robux, proses aktivasi pesanan secara
                 instan, dan kelola katalog produk toko dengan mudah.
               </p>
@@ -68,82 +70,37 @@ export default function DashboardOverview({
 
             <button
               onClick={() => onSelectTab("order_masuk")}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff1b7a] via-[#ff2e93] to-[#d81159] text-white font-black text-sm shadow-[0_0_25px_rgba(255,27,122,0.55)] hover:shadow-[0_0_35px_rgba(255,27,122,0.85)] hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#ff1b7a] via-[#ff2e93] to-[#d81159] text-white font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(255,27,122,0.55)] hover:shadow-[0_0_35px_rgba(255,27,122,0.85)] hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
             >
               <span>Kelola Order</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-
-          {/* 3 Quick Features Highlight */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/[0.08]">
-            <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#070918]/80 border border-white/[0.08] hover:border-pink-500/50 hover:bg-[#111538] transition-all hover:shadow-[0_0_15px_rgba(255,27,122,0.2)]">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-[#ff1b7a] shrink-0">
-                <CreditCard className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-white">
-                  Transaksi Cepat
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Pantau top up Robux secara real-time.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#070918]/80 border border-white/[0.08] hover:border-cyan-500/50 hover:bg-[#111538] transition-all hover:shadow-[0_0_15px_rgba(0,210,255,0.2)]">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-[#00d2ff] shrink-0">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-white">
-                  Aktivasi Instan
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Proses pesanan otomatis dan cepat.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#070918]/80 border border-white/[0.08] hover:border-pink-500/50 hover:bg-[#111538] transition-all hover:shadow-[0_0_15px_rgba(255,27,122,0.2)]">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-[#ff1b7a] shrink-0">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-white">
-                  Kelola Katalog
-                </h4>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Atur produk dan stok dengan mudah.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* 2. 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* 2. 4 Stat Cards (2x2 Grid on Mobile, 4 Cols on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {/* TOTAL OMSET */}
-        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-pink-500/60 hover:shadow-[0_0_25px_rgba(255,27,122,0.2)] transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+        <div className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-pink-500/60 hover:shadow-[0_0_25px_rgba(255,27,122,0.2)] transition-all">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400">
               Total Omset
             </span>
-            <div className="w-9 h-9 rounded-xl bg-pink-500/15 border border-pink-500/30 text-[#ff1b7a] flex items-center justify-center shadow-[0_0_10px_rgba(255,27,122,0.3)]">
-              <TrendingUp className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-pink-500/15 border border-pink-500/30 text-[#ff1b7a] flex items-center justify-center shadow-[0_0_10px_rgba(255,27,122,0.3)] shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-1.5 font-sans">
-              <span className="text-sm sm:text-base font-black text-pink-400">
+            <div className="flex items-baseline gap-1 font-sans">
+              <span className="text-xs sm:text-sm lg:text-base font-black text-pink-400">
                 Rp
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-black text-white tracking-tight truncate">
                 {totalRevenue.toLocaleString("id-ID")}
               </span>
             </div>
-            <div className="flex items-center gap-1 mt-2 text-xs font-black text-[#00e676]">
+            <div className="flex items-center gap-1 mt-1.5 sm:mt-2 text-[10px] sm:text-xs font-black text-[#00e676]">
               <span>↑ Transaksi sukses</span>
             </div>
           </div>
@@ -152,21 +109,21 @@ export default function DashboardOverview({
         {/* ORDER MASUK */}
         <div
           onClick={() => onSelectTab("order_masuk")}
-          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-amber-500/60 hover:shadow-[0_0_25px_rgba(245,158,11,0.2)] transition-all cursor-pointer group"
+          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-amber-500/60 hover:shadow-[0_0_25px_rgba(245,158,11,0.2)] transition-all cursor-pointer group"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400">
               Order Masuk
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.3)]">
-              <Inbox className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.3)] shrink-0">
+              <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight font-sans">
               {pendingOrders.length}
             </div>
-            <div className="flex items-center gap-1 mt-2 text-xs font-black text-amber-400 group-hover:underline">
+            <div className="flex items-center gap-1 mt-1.5 sm:mt-2 text-[10px] sm:text-xs font-black text-amber-400 group-hover:underline">
               <span>Perlu diproses</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
@@ -176,22 +133,22 @@ export default function DashboardOverview({
         {/* SEDANG DIPROSES */}
         <div
           onClick={() => onSelectTab("order_diproses")}
-          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-cyan-500/60 hover:shadow-[0_0_25px_rgba(0,210,255,0.2)] transition-all cursor-pointer group"
+          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-cyan-500/60 hover:shadow-[0_0_25px_rgba(0,210,255,0.2)] transition-all cursor-pointer group"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400">
               Sedang Diproses
             </span>
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-[#00d2ff] flex items-center justify-center shadow-[0_0_10px_rgba(0,210,255,0.3)]">
-              <Clock className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-[#00d2ff] flex items-center justify-center shadow-[0_0_10px_rgba(0,210,255,0.3)] shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight font-sans">
               {processingOrders.length}
             </div>
-            <div className="flex items-center gap-1 mt-2 text-xs font-black text-[#00d2ff] group-hover:underline">
-              <span>Dalam antrean gamepass</span>
+            <div className="flex items-center gap-1 mt-1.5 sm:mt-2 text-[10px] sm:text-xs font-black text-[#00d2ff] group-hover:underline">
+              <span>Dalam antrean</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
@@ -200,22 +157,22 @@ export default function DashboardOverview({
         {/* ORDER SELESAI */}
         <div
           onClick={() => onSelectTab("order_selesai")}
-          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-3xl p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(0,230,118,0.2)] transition-all cursor-pointer"
+          className="bg-[#0b0e24]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 border border-white/[0.08] shadow-xs flex flex-col justify-between hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(0,230,118,0.2)] transition-all cursor-pointer"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400">
               Order Selesai
             </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[#00e676] flex items-center justify-center shadow-[0_0_10px_rgba(0,230,118,0.3)]">
-              <CheckCircle2 className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg sm:rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[#00e676] flex items-center justify-center shadow-[0_0_10px_rgba(0,230,118,0.3)] shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-sans">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight font-sans">
               {completedOrders.length}
             </div>
-            <div className="flex items-center gap-1 mt-2 text-xs font-medium text-gray-400">
-              <span>Dari {orders.length} total order</span>
+            <div className="flex items-center gap-1 mt-1.5 sm:mt-2 text-[10px] sm:text-xs font-medium text-gray-400">
+              <span>Dari {orders.length} order</span>
             </div>
           </div>
         </div>
@@ -223,8 +180,12 @@ export default function DashboardOverview({
 
       {/* ⚠️ Card Aktivasi ID Roblox Belum Aktif (Requested by Client) */}
       <RobloxActivationCard
+        orders={orders}
         initialUsername="saprii09"
         initialFee={97000}
+        onProcessOrder={(order) => {
+          onSelectOrder(order);
+        }}
       />
 
       {/* 3. Pesanan Terbaru Card matching Image 2 */}

@@ -99,15 +99,14 @@ export default function PricelistManager({
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {item.badge && (
                         <span
-                          className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
+                          className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
                             item.badge === "PROMO"
-                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/40"
+                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-[0_0_8px_rgba(255,27,122,0.3)]"
                               : item.badge === "SULTAN"
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                              : "bg-cyan-500/20 text-[#00d2ff] border border-cyan-500/40"
+                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                              : "bg-cyan-500/20 text-[#00d2ff] border border-cyan-500/40 shadow-[0_0_8px_rgba(0,210,255,0.3)]"
                           }`}
                         >
-                          <Zap className="w-2.5 h-2.5" />
                           {item.badge}
                         </span>
                       )}

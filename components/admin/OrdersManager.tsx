@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
+  MessageSquareHeart,
 } from "lucide-react";
 import { AdminOrder, OrderStatus } from "@/types/admin";
 import { AdminTab } from "./AdminSidebar";
@@ -22,6 +23,7 @@ interface OrdersManagerProps {
   onSelectOrder: (order: AdminOrder) => void;
   onQuickUpdateStatus: (orderId: string, status: OrderStatus) => void;
   onRefresh: () => void;
+  storeName?: string;
 }
 
 export default function OrdersManager({
@@ -32,6 +34,7 @@ export default function OrdersManager({
   onSelectOrder,
   onQuickUpdateStatus,
   onRefresh,
+  storeName = "NiceGaming",
 }: OrdersManagerProps) {
   const getTargetStatus = (): OrderStatus | "ALL" => {
     switch (currentTab) {
@@ -269,7 +272,21 @@ export default function OrdersManager({
                     </button>
                   )}
 
-
+                  {/* Tombol Kirim Link Review untuk Order Selesai */}
+                  {order.status === "completed" && (
+                    <a
+                      href={`https://wa.me/${order.whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                        `Halo kak @${order.robloxUsername}! Pesanan Robux kamu dengan ID *${order.orderNumber}* (${order.robuxAmount.toLocaleString("id-ID")} Robux) telah selesai diproses ✅.\n\nBerikut link khusus untuk memberikan ulasan & rating bintang 5 kamu (1 token ulasan resmi):\n${typeof window !== "undefined" ? window.location.origin : ""}/review?token=${order.orderNumber.replace(/^#/, "")}\n\nTerima kasih banyak sudah mempercayakan top up di ${storeName}! 🙏✨`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-[#00e676] hover:bg-emerald-500 hover:text-slate-950 hover:shadow-[0_0_15px_rgba(0,230,118,0.5)] font-bold text-xs transition-all cursor-pointer whitespace-nowrap"
+                      title="Kirim token link review via WhatsApp"
+                    >
+                      <MessageSquareHeart className="w-3.5 h-3.5" />
+                      <span>Kirim Review</span>
+                    </a>
+                  )}
 
                   {/* Detail Button matching Image 3 */}
                   <button

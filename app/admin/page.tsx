@@ -11,6 +11,7 @@ import CustomersManager from "@/components/admin/CustomersManager";
 import TestimonialsManager from "@/components/admin/TestimonialsManager";
 import PaymentsManager from "@/components/admin/PaymentsManager";
 import StoreSettings from "@/components/admin/StoreSettings";
+import RetentionWarningBanner from "@/components/admin/RetentionWarningBanner";
 
 import {
   fetchOrders,
@@ -164,6 +165,8 @@ export default function AdminDashboardPage() {
             : "2026-09-05",
           isPromoActive:
             dbSettings.promo_active !== undefined ? dbSettings.promo_active : true,
+          qrisImagePath: dbSettings.qris_image_path || undefined,
+          logoImagePath: dbSettings.logo_image_path || undefined,
         });
       }
     } catch (error) {
@@ -387,10 +390,15 @@ export default function AdminDashboardPage() {
           onSearchChange={setSearchQuery}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           storeName={settings.storeName}
+          orders={orders}
+          onSelectOrder={handleOpenOrderDetail}
+          onSelectTab={setActiveTab}
         />
 
         {/* Dynamic Page Views */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+          <RetentionWarningBanner />
+
           {/* Order Detail View */}
           {selectedOrder ? (
             <OrderDetailView
@@ -398,6 +406,7 @@ export default function AdminDashboardPage() {
               onBack={() => setSelectedOrder(null)}
               onUpdateStatus={handleUpdateOrderStatus}
               previousTabLabel={getPreviousTabLabel()}
+              storeName={settings.storeName}
             />
           ) : (
             <>
@@ -406,6 +415,7 @@ export default function AdminDashboardPage() {
                   orders={orders}
                   onSelectTab={setActiveTab}
                   onSelectOrder={handleOpenOrderDetail}
+                  storeName={settings.storeName}
                 />
               )}
 
@@ -421,6 +431,7 @@ export default function AdminDashboardPage() {
                   onQuickUpdateStatus={handleQuickUpdateStatus}
                   onSelectOrder={handleOpenOrderDetail}
                   onRefresh={handleRefresh}
+                  storeName={settings.storeName}
                 />
               )}
 
@@ -489,6 +500,8 @@ export default function AdminDashboardPage() {
                       promo_discount_price: cleanPrice,
                       promo_end_date: newSettings.promoEndDate,
                       promo_subtitle: newSettings.noticeBanner,
+                      qris_image_path: newSettings.qrisImagePath,
+                      logo_image_path: newSettings.logoImagePath,
                     });
 
                     const freshSettings = await fetchStoreSettings();
@@ -519,6 +532,8 @@ export default function AdminDashboardPage() {
                           freshSettings.promo_active !== undefined
                             ? freshSettings.promo_active
                             : true,
+                        qrisImagePath: freshSettings.qris_image_path || undefined,
+                        logoImagePath: freshSettings.logo_image_path || undefined,
                       });
                     }
                     showToast("Pengaturan toko berhasil disimpan ke database Neon!");
