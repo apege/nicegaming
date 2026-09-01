@@ -18,9 +18,16 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const cleanId = id.trim();
+    const withHash = cleanId.startsWith("#") ? cleanId : `#${cleanId}`;
+    const withoutHash = cleanId.replace(/^#/, "");
+
     const rows = await sql`
       SELECT * FROM orders
-      WHERE id::text = ${id} OR order_code = ${id}
+      WHERE id::text = ${cleanId} 
+         OR order_code = ${cleanId}
+         OR order_code = ${withHash}
+         OR order_code = ${withoutHash}
       LIMIT 1
     `;
 
@@ -50,13 +57,20 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const cleanId = id.trim();
+    const withHash = cleanId.startsWith("#") ? cleanId : `#${cleanId}`;
+    const withoutHash = cleanId.replace(/^#/, "");
+
     const body = await req.json();
     const { order_status, payment_status, admin_notes, payment_proof_path } =
       body;
 
     const existing = await sql`
       SELECT * FROM orders
-      WHERE id::text = ${id} OR order_code = ${id}
+      WHERE id::text = ${cleanId} 
+         OR order_code = ${cleanId}
+         OR order_code = ${withHash}
+         OR order_code = ${withoutHash}
       LIMIT 1
     `;
 

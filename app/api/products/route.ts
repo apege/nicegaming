@@ -14,12 +14,58 @@ const NO_CACHE_HEADERS = {
 
 export async function GET() {
   try {
-    const rows = await sql`
-      SELECT * FROM products
-      ORDER BY robux ASC
-    `;
+    const [products, settingsRows, orderStats] = await Promise.all([
+      sql`SELECT * FROM products ORDER BY robux ASC`,
+      sql`SELECT promo_active, promo_robux_amount FROM store_settings ORDER BY updated_at DESC, id DESC LIMIT 1`,
+      sql`SELECT robux, COUNT(*)::int as count FROM orders WHERE payment_status = 'paid' OR order_status = 'completed' GROUP BY robux ORDER BY count DESC`,
+    ]);
+
+    const settings = settingsRows[0] || null;
+    const isPromoActive = settings ? Boolean(settings.promo_active) : false;
+    const promoRobuxAmount = settings ? Number(settings.promo_robux_amount) : 0;
+
+    // 1. Find most ordered package for "POPULER" badge (excluding promo and sultan)
+    let mostPopularRobux: number | null = null;
+    if (orderStats && orderStats.length > 0) {
+      for (const stat of orderStats) {
+        const r = Number(stat.robux);
+        if (r <= 10000 && (!isPromoActive || r !== promoRobuxAmount)) {
+          mostPopularRobux = r;
+          break;
+        }
+      }
+    }
+    // Default popular fallback if no paid orders yet: 240 Robux or 800 Robux
+    if (mostPopularRobux === null) {
+      const candidates = products.filter((p) => Number(p.robux) <= 10000 && (!isPromoActive || Number(p.robux) !== promoRobuxAmount));
+      mostPopularRobux = candidates.length > 0 ? Number(candidates[0].robux) : 240;
+    }
+
+    const enhancedProducts = products.map((p) => {
+      const robuxNum = Number(p.robux);
+      let badge: string | null = null;
+
+      // Rule 1: PROMO -> Aktif di Pengaturan Toko
+      if (isPromoActive && robuxNum === promoRobuxAmount) {
+        badge = "PROMO";
+      }
+      // Rule 2: SULTAN -> Nominal di atas 10.000 Robux
+      else if (robuxNum > 10000) {
+        badge = "SULTAN";
+      }
+      // Rule 3: POPULER -> Paket paling banyak di-order
+      else if (robuxNum === mostPopularRobux) {
+        badge = "POPULER";
+      }
+
+      return {
+        ...p,
+        badge,
+      };
+    });
+
     return NextResponse.json(
-      { success: true, data: rows },
+      { success: true, data: enhancedProducts },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error: any) {

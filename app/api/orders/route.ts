@@ -58,6 +58,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
+      order_code: customOrderCode,
       roblox_username,
       customer_phone,
       robux,
@@ -95,9 +96,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate unique order code: #BLX + 8 random numbers
+    // Generate unique order code if not provided
     const randomCode = Math.floor(10000000 + Math.random() * 90000000);
-    const orderCode = `#BLX${randomCode}`;
+    const orderCode = customOrderCode || `#BLX${randomCode}`;
 
     const newOrder = await sql`
       INSERT INTO orders (

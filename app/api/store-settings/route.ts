@@ -65,6 +65,8 @@ export async function POST(req: Request) {
       promo_end_date,
       promo_subtitle,
       admin_note,
+      qris_image_path,
+      logo_image_path,
     } = body;
 
     const existing = await sql`
@@ -79,7 +81,7 @@ export async function POST(req: Request) {
         INSERT INTO store_settings (
           store_name, whatsapp_number, promo_active, promo_robux_amount,
           promo_original_label, promo_discount_price, promo_end_date,
-          promo_subtitle, admin_note
+          promo_subtitle, admin_note, qris_image_path, logo_image_path
         ) VALUES (
           ${store_name || "NiceGaming"},
           ${whatsapp_number || "6283863946967"},
@@ -89,7 +91,9 @@ export async function POST(req: Request) {
           ${promo_discount_price ? Number(promo_discount_price) : 45000},
           ${promo_end_date ? new Date(promo_end_date).toISOString() : null},
           ${promo_subtitle || "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!"},
-          ${admin_note || null}
+          ${admin_note || null},
+          ${qris_image_path || null},
+          ${logo_image_path || null}
         )
         RETURNING *
       `;
@@ -104,6 +108,8 @@ export async function POST(req: Request) {
       const newPromoEnd = promo_end_date !== undefined ? (promo_end_date ? new Date(promo_end_date).toISOString() : null) : current.promo_end_date;
       const newPromoSub = promo_subtitle !== undefined ? promo_subtitle : current.promo_subtitle;
       const newAdminNote = admin_note !== undefined ? admin_note : current.admin_note;
+      const newQrisPath = qris_image_path !== undefined ? qris_image_path : current.qris_image_path;
+      const newLogoPath = logo_image_path !== undefined ? logo_image_path : current.logo_image_path;
 
       result = await sql`
         UPDATE store_settings
@@ -117,6 +123,8 @@ export async function POST(req: Request) {
           promo_end_date = ${newPromoEnd},
           promo_subtitle = ${newPromoSub},
           admin_note = ${newAdminNote},
+          qris_image_path = ${newQrisPath},
+          logo_image_path = ${newLogoPath},
           updated_at = now()
         WHERE id = ${current.id}
         RETURNING *
