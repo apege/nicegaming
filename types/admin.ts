@@ -27,7 +27,7 @@ export interface AdminPricelistItem {
   robux: number;
   price: number;
   isActive: boolean;
-  badge?: 'PROMO' | 'SULTAN' | 'BEST SELLER' | 'POPULAR' | null;
+  badge?: 'PROMO' | 'SULTAN' | 'POPULER' | 'BEST SELLER' | string | null;
 }
 
 export interface AdminCustomer {
@@ -72,4 +72,6 @@ export interface AdminStoreSettings {
   promoNormalPrice?: string;
   promoEndDate?: string;
   isPromoActive?: boolean;
+  qrisImagePath?: string;
+  logoImagePath?: string;
 }

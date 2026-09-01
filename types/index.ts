@@ -4,6 +4,7 @@ export interface RobuxPackage {
   price: number;
   priceFormatted: string;
   isBestSeller?: boolean;
+  badge?: "POPULER" | "PROMO" | "SULTAN" | string | null;
 }
 
 export interface RobloxUser {
