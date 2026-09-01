@@ -84,19 +84,29 @@ export default function OrderForm({
       return;
     }
 
+    if (paymentMethod === "website_qris") {
+      // 1. For QRIS: Open QRIS modal first with generated invoice, order only saves to DB when customer clicks "Konfirmasi Sudah Bayar" & uploads proof!
+      const orderCode = `#BLX${Math.floor(10000000 + Math.random() * 90000000)}`;
+      onOpenQrisModal(orderCode, userId.trim(), whatsapp.trim(), robloxUser);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 2. For WhatsApp: Submit order directly
     setIsSubmitting(true);
 
     try {
-      // Create real order in Neon DB via API
+      const orderCode = `#BLX${Math.floor(10000000 + Math.random() * 90000000)}`;
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          order_code: orderCode,
           roblox_username: userId.trim(),
           customer_phone: whatsapp.trim(),
           robux: selectedPackage.robux,
           price: selectedPackage.price,
-          payment_method: paymentMethod === "website_qris" ? "Website" : "WhatsApp",
+          payment_method: "WhatsApp",
           roblox_user_id: robloxUser?.id ? String(robloxUser.id) : undefined,
           customer_notes: robloxUser ? `Display Name: ${robloxUser.displayName}` : undefined,
         }),
@@ -114,27 +124,30 @@ export default function OrderForm({
         return;
       }
 
-      const orderCode = data.data?.order_code || `#BLX${Math.floor(100000 + Math.random() * 900000)}`;
+      // Reset form fields
+      const submittedUserId = userId.trim();
+      const submittedWhatsapp = whatsapp.trim();
+      const submittedRobloxUser = robloxUser;
 
-      if (paymentMethod === "website_qris") {
-        onOpenQrisModal(orderCode, userId, whatsapp, robloxUser);
-      } else {
-        const displayNameTxt = robloxUser ? ` (${robloxUser.displayName})` : "";
-        const message =
-          `Halo Admin NiceGaming, saya ingin order Robux via WhatsApp:%0A%0A` +
-          `🧾 Invoice: ${orderCode}%0A` +
-          `🎮 Game: Roblox%0A` +
-          `👤 Username / User ID: ${userId}${displayNameTxt}%0A` +
-          `💎 Paket: ${selectedPackage.robux.toLocaleString("id-ID")} Robux%0A` +
-          `💰 Total: ${selectedPackage.priceFormatted}%0A` +
-          `📱 Nomor WA: ${whatsapp}%0A%0A` +
-          `Mohon instruksi pembayarannya ya admin, terima kasih!`;
+      setUserId("");
+      setWhatsapp("");
+      setRobloxUser(null);
 
-        const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
-        const whatsappUrl = `https://wa.me/${targetPhone}?text=${message}`;
-        window.open(whatsappUrl, "_blank");
-        onOpenSuccessModal(orderCode, userId, whatsapp, robloxUser);
-      }
+      const displayNameTxt = submittedRobloxUser ? ` (${submittedRobloxUser.displayName})` : "";
+      const message =
+        `Halo Admin NiceGaming, saya ingin order Robux via WhatsApp:%0A%0A` +
+        `🧾 Invoice: ${orderCode}%0A` +
+        `🎮 Game: Roblox%0A` +
+        `👤 Username / User ID: ${submittedUserId}${displayNameTxt}%0A` +
+        `💎 Paket: ${selectedPackage.robux.toLocaleString("id-ID")} Robux%0A` +
+        `💰 Total: ${selectedPackage.priceFormatted}%0A` +
+        `📱 Nomor WA: ${submittedWhatsapp}%0A%0A` +
+        `Mohon instruksi pembayarannya ya admin, terima kasih!`;
+
+      const targetPhone = (adminWhatsapp || ADMIN_PHONE).replace(/[^0-9]/g, "");
+      const whatsappUrl = `https://wa.me/${targetPhone}?text=${message}`;
+      window.open(whatsappUrl, "_blank");
+      onOpenSuccessModal(orderCode, submittedUserId, submittedWhatsapp, submittedRobloxUser);
     } catch (err) {
       console.error("Order submit error:", err);
       alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");

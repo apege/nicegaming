@@ -26,6 +26,7 @@ export default function LandingPage() {
   });
   const [adminWhatsapp, setAdminWhatsapp] = useState("6282343927560");
   const [storeName, setStoreName] = useState("NiceGaming");
+  const [qrisImage, setQrisImage] = useState<string | undefined>(undefined);
 
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -38,14 +39,8 @@ export default function LandingPage() {
     async function loadInitialData() {
       try {
         const [prodRes, setRes] = await Promise.all([
-          fetch(`/api/products?_t=${Date.now()}`, {
-            cache: "no-store",
-            headers: { "Cache-Control": "no-cache" },
-          }),
-          fetch(`/api/store-settings?_t=${Date.now()}`, {
-            cache: "no-store",
-            headers: { "Cache-Control": "no-cache" },
-          }),
+          fetch("/api/products", { cache: "no-store" }),
+          fetch("/api/store-settings", { cache: "no-store" }),
         ]);
 
         const prodJson = await prodRes.json();
@@ -73,6 +68,9 @@ export default function LandingPage() {
           if (setJson.data.store_name) {
             setStoreName(setJson.data.store_name);
           }
+          if (setJson.data.qris_image_path) {
+            setQrisImage(setJson.data.qris_image_path);
+          }
         }
       } catch (err) {
         console.error("Error loading store data:", err);
@@ -80,6 +78,8 @@ export default function LandingPage() {
     }
     loadInitialData();
   }, []);
+
+  const [formResetKey, setFormResetKey] = useState(0);
 
   const handleOpenQrisModal = (
     invId: string,
@@ -104,6 +104,7 @@ export default function LandingPage() {
     setActiveUserId(user);
     setActiveWhatsapp(wa);
     setActiveRobloxUser(rUser);
+    setFormResetKey((prev) => prev + 1);
     setIsSuccessModalOpen(true);
   };
 
@@ -133,6 +134,7 @@ export default function LandingPage() {
             </div>
             <div className="lg:col-span-4 space-y-6">
               <OrderForm
+                key={formResetKey}
                 selectedPackage={selectedPackage}
                 onOpenQrisModal={handleOpenQrisModal}
                 onOpenSuccessModal={handleOpenSuccessModal}
@@ -145,7 +147,7 @@ export default function LandingPage() {
       </section>
 
       <HowToOrder />
-      <Testimonials />
+      <Testimonials storeName={storeName} />
       <Faq />
       <Footer adminWhatsapp={adminWhatsapp} storeName={storeName} />
       <FloatingWidget adminWhatsapp={adminWhatsapp} />
@@ -160,7 +162,10 @@ export default function LandingPage() {
         selectedPackage={selectedPackage}
         robloxUser={activeRobloxUser}
         adminWhatsapp={adminWhatsapp}
+        storeName={storeName}
+        qrisImage={qrisImage}
         onConfirmPaid={() => {
+          setFormResetKey((prev) => prev + 1);
           setIsQrisModalOpen(false);
           setIsSuccessModalOpen(true);
         }}

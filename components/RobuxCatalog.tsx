@@ -39,7 +39,7 @@ export default function RobuxCatalog({
               robux: Number(p.robux),
               price: Number(p.price),
               priceFormatted: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
-              isBestSeller: p.robux === 240 || p.robux === 2200,
+              badge: p.badge || (p.robux === 240 ? "POPULER" : p.robux === 2200 ? "PROMO" : null),
             }));
           if (mapped.length > 0) {
             setPackages(mapped);
@@ -94,10 +94,18 @@ export default function RobuxCatalog({
                   : "bg-[#090b20]/95 border border-pink-500/20 hover:border-pink-500/60 hover:bg-[#0f1130] hover:shadow-[0_0_15px_rgba(255,27,122,0.25)]"
               }`}
             >
-              {/* BEST SELLER Badge */}
-              {pkg.isBestSeller && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 sm:px-3 py-0.5 rounded-full bg-gradient-to-r from-[#ff1b7a] via-[#e91e63] to-[#d81159] text-[8px] sm:text-[9px] font-black tracking-wider uppercase text-white shadow-[0_0_12px_rgba(255,27,122,0.85)] z-20 whitespace-nowrap">
-                  BEST SELLER
+              {/* Dynamic Badge: PROMO, POPULER, SULTAN */}
+              {pkg.badge && (
+                <div
+                  className={`absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 sm:px-3 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black tracking-wider uppercase text-white z-20 whitespace-nowrap ${
+                    pkg.badge === "PROMO"
+                      ? "bg-gradient-to-r from-[#ff1b7a] via-[#e91e63] to-[#d81159] shadow-[0_0_15px_rgba(255,27,122,0.85)]"
+                      : pkg.badge === "SULTAN"
+                      ? "bg-gradient-to-r from-[#fbbf24] via-[#f59e0b] to-[#d97706] text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.85)]"
+                      : "bg-gradient-to-r from-[#00d2ff] via-[#00a8ff] to-[#0077ff] shadow-[0_0_15px_rgba(0,210,255,0.85)]"
+                  }`}
+                >
+                  {pkg.badge}
                 </div>
               )}
 
