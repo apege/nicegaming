@@ -12,6 +12,8 @@ import TestimonialsManager from "@/components/admin/TestimonialsManager";
 import PaymentsManager from "@/components/admin/PaymentsManager";
 import StoreSettings from "@/components/admin/StoreSettings";
 import RetentionWarningBanner from "@/components/admin/RetentionWarningBanner";
+import AdminLogin from "@/components/admin/AdminLogin";
+import { Loader2 } from "lucide-react";
 
 import {
   fetchOrders,
@@ -49,6 +51,7 @@ import {
 } from "@/types/admin";
 
 export default function AdminDashboardPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -176,9 +179,34 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  // Verify admin session on mount
   useEffect(() => {
-    loadAllData();
+    async function checkAuth() {
+      try {
+        const res = await fetch(`/api/auth/session?_t=${Date.now()}`, {
+          cache: "no-store",
+        });
+        const json = await res.json();
+        const authed = Boolean(json.authenticated);
+        setIsAuthenticated(authed);
+        if (authed) {
+          loadAllData();
+        }
+      } catch {
+        setIsAuthenticated(false);
+      }
+    }
+    checkAuth();
   }, [loadAllData]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+    setIsAuthenticated(false);
+  };
 
   // Order Handlers
   const handleOpenOrderDetail = (order: AdminOrder) => {
@@ -354,6 +382,32 @@ export default function AdminDashboardPage() {
     }
   };
 
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#070914] flex flex-col items-center justify-center p-4 relative text-white">
+        <div className="fixed inset-0 cyber-grid pointer-events-none opacity-25 z-0" />
+        <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+          <Loader2 className="w-10 h-10 text-[#ff1b7a] animate-spin drop-shadow-[0_0_15px_rgba(255,27,122,0.8)]" />
+          <p className="text-xs font-black uppercase tracking-widest text-gray-400 font-['Orbitron',sans-serif]">
+            Memverifikasi Akses Keamanan Admin...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AdminLogin
+        onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          loadAllData();
+        }}
+        storeName={settings.storeName}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#070914] text-white selection:bg-[#ff1b7a] selection:text-white flex font-sans antialiased relative overflow-x-hidden">
       {/* Background Cyber Grid & Ambient Lights */}
@@ -393,6 +447,7 @@ export default function AdminDashboardPage() {
           orders={orders}
           onSelectOrder={handleOpenOrderDetail}
           onSelectTab={setActiveTab}
+          onLogout={handleLogout}
         />
 
         {/* Dynamic Page Views */}
