@@ -21,23 +21,41 @@ export async function GET(req: Request) {
     let rows;
     if (status && status !== "all") {
       rows = await sql`
-        SELECT * FROM orders
+        SELECT
+          id, order_code, roblox_username, customer_phone, robux, price,
+          payment_method, payment_status, order_status, admin_notes,
+          customer_notes, created_at, updated_at,
+          (payment_proof_path IS NOT NULL AND payment_proof_path != '') AS has_proof_photo
+        FROM orders
         WHERE order_status = ${status}
         ORDER BY created_at DESC
+        LIMIT 200
       `;
     } else if (search) {
       const searchPattern = `%${search}%`;
       rows = await sql`
-        SELECT * FROM orders
+        SELECT
+          id, order_code, roblox_username, customer_phone, robux, price,
+          payment_method, payment_status, order_status, admin_notes,
+          customer_notes, created_at, updated_at,
+          (payment_proof_path IS NOT NULL AND payment_proof_path != '') AS has_proof_photo
+        FROM orders
         WHERE roblox_username ILIKE ${searchPattern}
            OR order_code ILIKE ${searchPattern}
            OR customer_phone ILIKE ${searchPattern}
         ORDER BY created_at DESC
+        LIMIT 100
       `;
     } else {
       rows = await sql`
-        SELECT * FROM orders
+        SELECT
+          id, order_code, roblox_username, customer_phone, robux, price,
+          payment_method, payment_status, order_status, admin_notes,
+          customer_notes, created_at, updated_at,
+          (payment_proof_path IS NOT NULL AND payment_proof_path != '') AS has_proof_photo
+        FROM orders
         ORDER BY created_at DESC
+        LIMIT 200
       `;
     }
 

@@ -39,6 +39,25 @@ export default function OrderDetailView({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState(order.notes || "");
   const [isSavedNotes, setIsSavedNotes] = useState(false);
+  const [loadedProof, setLoadedProof] = useState<string | null>(
+    order.proofPhotoUrl || null
+  );
+  const [isLoadingProof, setIsLoadingProof] = useState(false);
+
+  React.useEffect(() => {
+    if (order.hasProofPhoto && !loadedProof) {
+      setIsLoadingProof(true);
+      fetch(`/api/orders/${order.id}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.data?.payment_proof_path) {
+            setLoadedProof(json.data.payment_proof_path);
+          }
+        })
+        .catch((err) => console.error("Error loading proof image:", err))
+        .finally(() => setIsLoadingProof(false));
+    }
+  }, [order.id, order.hasProofPhoto, loadedProof]);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -259,7 +278,7 @@ export default function OrderDetailView({
         </div>
 
         {/* Bukti Pembayaran / Transfer Box */}
-        {order.proofPhotoUrl ? (
+        {loadedProof ? (
           <div className="p-4 rounded-2xl bg-[#070918] border border-emerald-500/30 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-black text-[#00e676]">
@@ -267,10 +286,10 @@ export default function OrderDetailView({
                 <span>Bukti Transfer Pembeli Terlampir</span>
               </div>
               <a
-                href={order.proofPhotoUrl}
+                href={loadedProof}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] font-bold text-[#00d2ff] hover:underline inline-flex items-center gap-1"
+                className="text-[11px] font-bold text-[#00d2ff] hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Lihat Ukuran Penuh</span>
                 <ExternalLink className="w-3 h-3" />
@@ -280,12 +299,17 @@ export default function OrderDetailView({
             <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-xs mx-auto bg-black group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={order.proofPhotoUrl}
+                src={loadedProof}
                 alt="Bukti Transfer Pembeli"
                 className="w-full h-48 object-contain cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => window.open(order.proofPhotoUrl, "_blank")}
+                onClick={() => window.open(loadedProof, "_blank")}
               />
             </div>
+          </div>
+        ) : isLoadingProof ? (
+          <div className="p-6 rounded-2xl bg-[#070918] border border-white/[0.08] text-center text-xs text-gray-400 flex flex-col items-center justify-center gap-2">
+            <span className="w-5 h-5 border-2 border-[#ff1b7a] border-t-transparent rounded-full animate-spin" />
+            <span>Memuat foto bukti transfer...</span>
           </div>
         ) : (
           <div className="p-4 rounded-2xl bg-[#070918] border border-white/[0.06] text-center text-xs text-gray-400 italic">
