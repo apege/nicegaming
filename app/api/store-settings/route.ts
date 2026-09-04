@@ -5,6 +5,12 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
+const PUBLIC_CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+  "CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+};
+
 const NO_CACHE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
   "Pragma": "no-cache",
@@ -35,13 +41,13 @@ export async function GET() {
             promo_subtitle: "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!",
           },
         },
-        { headers: NO_CACHE_HEADERS }
+        { headers: PUBLIC_CACHE_HEADERS }
       );
     }
 
     return NextResponse.json(
       { success: true, data: rows[0] },
-      { headers: NO_CACHE_HEADERS }
+      { headers: PUBLIC_CACHE_HEADERS }
     );
   } catch (error: any) {
     console.error("GET /api/store-settings error:", error);

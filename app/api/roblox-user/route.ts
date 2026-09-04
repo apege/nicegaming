@@ -67,15 +67,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        displayName: user.displayName || user.name,
-        avatarUrl: avatarUrl || `https://tr.rbxcdn.com/placeholder`,
+    return NextResponse.json(
+      {
+        success: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          displayName: user.displayName || user.name,
+          avatarUrl: avatarUrl || `https://tr.rbxcdn.com/placeholder`,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+          "CDN-Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+          "Vercel-CDN-Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        },
+      }
+    );
   } catch (error) {
     console.error("Roblox API Error:", error);
     return NextResponse.json(
