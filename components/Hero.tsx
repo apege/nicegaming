@@ -28,38 +28,12 @@ export default function Hero({
   const [endDateLabel, setEndDateLabel] = useState(promoEndDate);
 
   useEffect(() => {
-    async function loadPromoSettings() {
-      try {
-        const res = await fetch("/api/store-settings", { cache: "no-store" });
-        const json = await res.json();
-        if (json.success && json.data) {
-          const d = json.data;
-          setActivePromo(Boolean(d.promo_active));
-          if (d.promo_robux_amount) {
-            setRobuxNominal(Number(d.promo_robux_amount).toLocaleString("id-ID"));
-          }
-          if (d.promo_discount_price) {
-            setDiscountPrice(Number(d.promo_discount_price).toLocaleString("id-ID"));
-          }
-          if (d.promo_original_label) {
-            setNormalLabel(d.promo_original_label);
-          }
-          if (d.promo_end_date) {
-            setEndDateLabel(
-              new Date(d.promo_end_date).toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Error loading promo settings:", err);
-      }
-    }
-    loadPromoSettings();
-  }, []);
+    setActivePromo(isPromoActive);
+    setRobuxNominal(promoRobux);
+    setDiscountPrice(promoPrice);
+    setNormalLabel(promoNormalPrice);
+    setEndDateLabel(promoEndDate);
+  }, [isPromoActive, promoRobux, promoPrice, promoNormalPrice, promoEndDate]);
 
   return (
     <section className="relative z-10 pt-8 pb-16 lg:pt-14 lg:pb-24">

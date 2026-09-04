@@ -15,13 +15,7 @@ export default function Testimonials({ storeName = "NiceGaming" }: TestimonialsP
   useEffect(() => {
     async function loadTestimonials() {
       try {
-        const res = await fetch(`/api/testimonials?_t=${Date.now()}`, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            Pragma: "no-cache",
-          },
-        });
+        const res = await fetch("/api/testimonials");
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: TestimonialItem[] = json.data.map((row: any) => {

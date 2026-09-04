@@ -21,15 +21,14 @@ export default function RobuxCatalog({
   const [showAllPackages, setShowAllPackages] = useState(false);
 
   useEffect(() => {
+    if (propPackages && propPackages.length > 0) {
+      setPackages(propPackages);
+      return;
+    }
+
     async function loadLiveProducts() {
       try {
-        const res = await fetch(`/api/products?_t=${Date.now()}`, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            Pragma: "no-cache",
-          },
-        });
+        const res = await fetch("/api/products");
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: RobuxPackage[] = json.data
@@ -50,7 +49,7 @@ export default function RobuxCatalog({
       }
     }
     loadLiveProducts();
-  }, []);
+  }, [propPackages]);
 
   const displayedPackages = showAllPackages ? packages : packages.slice(0, 6);
 
