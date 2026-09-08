@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { getCached, setCached, invalidateCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
 
 const PUBLIC_CACHE_HEADERS = {
-  "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
-  "CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
-  "Vercel-CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+  "Cache-Control": "public, max-age=30, s-maxage=120, stale-while-revalidate=600",
+  "CDN-Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+  "Cloudflare-CDN-Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
 };
 
 const NO_CACHE_HEADERS = {
@@ -18,35 +17,59 @@ const NO_CACHE_HEADERS = {
   "Surrogate-Control": "no-store",
 };
 
+const CACHE_KEY_STORE_SETTINGS = "api:store_settings:public";
+
 export async function GET() {
   try {
+    const cached = getCached<any>(CACHE_KEY_STORE_SETTINGS);
+    if (cached) {
+      return NextResponse.json(
+        { success: true, data: cached },
+        { headers: PUBLIC_CACHE_HEADERS }
+      );
+    }
+
     const rows = await sql`
-      SELECT * FROM store_settings
+      SELECT
+        id,
+        store_name,
+        whatsapp_number,
+        promo_active,
+        promo_robux_amount,
+        promo_original_label,
+        promo_discount_price,
+        promo_end_date,
+        promo_subtitle,
+        admin_note,
+        qris_image_path,
+        logo_image_path
+      FROM store_settings
       ORDER BY updated_at DESC, id DESC
       LIMIT 1
     `;
 
     if (rows.length === 0) {
+      const fallback = {
+        store_name: "NiceGaming",
+        whatsapp_number: "6283863946967",
+        promo_active: true,
+        promo_robux_amount: 2200,
+        promo_original_label: "55.000",
+        promo_discount_price: 45000,
+        promo_end_date: "2026-09-05T23:59:59Z",
+        promo_subtitle: "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!",
+      };
       return NextResponse.json(
-        {
-          success: true,
-          data: {
-            store_name: "NiceGaming",
-            whatsapp_number: "6283863946967",
-            promo_active: true,
-            promo_robux_amount: 2200,
-            promo_original_label: "55.000",
-            promo_discount_price: 45000,
-            promo_end_date: "2026-09-05T23:59:59Z",
-            promo_subtitle: "⚡ Pengiriman Robux instan 1-5 menit via Gamepass 100% aman & legal!",
-          },
-        },
+        { success: true, data: fallback },
         { headers: PUBLIC_CACHE_HEADERS }
       );
     }
 
+    const data = rows[0];
+    setCached(CACHE_KEY_STORE_SETTINGS, data, 60); // 60s memory cache
+
     return NextResponse.json(
-      { success: true, data: rows[0] },
+      { success: true, data },
       { headers: PUBLIC_CACHE_HEADERS }
     );
   } catch (error: any) {
@@ -76,7 +99,10 @@ export async function POST(req: Request) {
     } = body;
 
     const existing = await sql`
-      SELECT * FROM store_settings
+      SELECT id, store_name, whatsapp_number, promo_active, promo_robux_amount,
+             promo_original_label, promo_discount_price, promo_end_date,
+             promo_subtitle, admin_note, qris_image_path, logo_image_path
+      FROM store_settings
       ORDER BY updated_at DESC, id DESC
       LIMIT 1
     `;
@@ -136,9 +162,13 @@ export async function POST(req: Request) {
         RETURNING *
       `;
 
-      // Also clean any rogue duplicate rows if any existed
+      // Clean rogue duplicate rows
       await sql`DELETE FROM store_settings WHERE id != ${current.id}`;
     }
+
+    // Invalidate cache immediately on update
+    invalidateCache("api:store_settings");
+    invalidateCache("api:products");
 
     return NextResponse.json(
       {

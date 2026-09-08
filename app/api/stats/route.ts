@@ -14,29 +14,34 @@ const NO_CACHE_HEADERS = {
 
 export async function GET() {
   try {
-    const orders = await sql`
-      SELECT id, robux, price, payment_method, order_status
+    // Highly optimized single-row SQL aggregation to reduce Neon network transfer and compute to minimum
+    const rows = await sql`
+      SELECT
+        COUNT(*)::int AS total_orders,
+        COUNT(*) FILTER (WHERE order_status = 'pending')::int AS pending_count,
+        COUNT(*) FILTER (WHERE order_status = 'processing')::int AS processing_count,
+        COUNT(*) FILTER (WHERE order_status = 'completed')::int AS completed_count,
+        COUNT(*) FILTER (WHERE order_status = 'cancelled')::int AS cancelled_count,
+        COALESCE(SUM(price) FILTER (WHERE order_status = 'completed'), 0)::numeric AS total_revenue,
+        COALESCE(SUM(robux) FILTER (WHERE order_status = 'completed'), 0)::numeric AS total_robux_sold,
+        COALESCE(SUM(price) FILTER (WHERE order_status = 'completed' AND LOWER(payment_method) = 'website'), 0)::numeric AS website_revenue,
+        COALESCE(SUM(price) FILTER (WHERE order_status = 'completed' AND LOWER(payment_method) = 'whatsapp'), 0)::numeric AS whatsapp_revenue
       FROM orders
     `;
 
-    const completed = orders.filter((o) => o.order_status === "completed");
-    const totalRevenue = completed.reduce((sum, o) => sum + Number(o.price), 0);
-    const totalRobuxSold = completed.reduce((sum, o) => sum + Number(o.robux), 0);
+    const stat = rows[0] || {};
 
-    const websiteRevenue = completed
-      .filter((o) => o.payment_method?.toLowerCase() === "website")
-      .reduce((sum, o) => sum + Number(o.price), 0);
-
-    const whatsappRevenue = completed
-      .filter((o) => o.payment_method?.toLowerCase() === "whatsapp")
-      .reduce((sum, o) => sum + Number(o.price), 0);
+    const totalRevenue = Number(stat.total_revenue) || 0;
+    const totalRobuxSold = Number(stat.total_robux_sold) || 0;
+    const websiteRevenue = Number(stat.website_revenue) || 0;
+    const whatsappRevenue = Number(stat.whatsapp_revenue) || 0;
 
     const counts = {
-      total: orders.length,
-      pending: orders.filter((o) => o.order_status === "pending").length,
-      processing: orders.filter((o) => o.order_status === "processing").length,
-      completed: completed.length,
-      cancelled: orders.filter((o) => o.order_status === "cancelled").length,
+      total: Number(stat.total_orders) || 0,
+      pending: Number(stat.pending_count) || 0,
+      processing: Number(stat.processing_count) || 0,
+      completed: Number(stat.completed_count) || 0,
+      cancelled: Number(stat.cancelled_count) || 0,
     };
 
     return NextResponse.json(

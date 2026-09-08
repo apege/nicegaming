@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { invalidateCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -50,6 +51,8 @@ export async function PATCH(
       RETURNING *
     `;
 
+    invalidateCache("api:products");
+
     return NextResponse.json(
       {
         success: true,
@@ -76,6 +79,8 @@ export async function DELETE(
     await sql`
       DELETE FROM products WHERE id::text = ${id}
     `;
+
+    invalidateCache("api:products");
 
     return NextResponse.json(
       {

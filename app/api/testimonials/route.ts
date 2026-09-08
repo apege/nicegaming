@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { getCached, setCached, invalidateCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
 
 const PUBLIC_CACHE_HEADERS = {
-  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600",
-  "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=600",
-  "Vercel-CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=600",
+  "Cache-Control": "public, max-age=30, s-maxage=120, stale-while-revalidate=600",
+  "CDN-Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+  "Cloudflare-CDN-Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
 };
 
 const NO_CACHE_HEADERS = {
@@ -18,24 +17,40 @@ const NO_CACHE_HEADERS = {
   "Surrogate-Control": "no-store",
 };
 
+const CACHE_KEY_TESTIMONIALS_PUBLIC = "api:testimonials:public";
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const all = searchParams.get("all") === "true";
 
+    if (!all) {
+      const cached = getCached<any[]>(CACHE_KEY_TESTIMONIALS_PUBLIC);
+      if (cached) {
+        return NextResponse.json(
+          { success: true, data: cached },
+          { headers: PUBLIC_CACHE_HEADERS }
+        );
+      }
+    }
+
     let rows;
     if (all) {
       rows = await sql`
-        SELECT * FROM testimonials
+        SELECT id, name, message, rating, status, order_code, admin_reply, created_at
+        FROM testimonials
         ORDER BY created_at DESC
+        LIMIT 100
       `;
     } else {
       rows = await sql`
-        SELECT * FROM testimonials
+        SELECT id, name, message, rating, status, order_code, admin_reply, created_at
+        FROM testimonials
         WHERE status = 'approved'
         ORDER BY created_at DESC
-        LIMIT 20
+        LIMIT 15
       `;
+      setCached(CACHE_KEY_TESTIMONIALS_PUBLIC, rows, 60); // 60s memory cache
     }
 
     return NextResponse.json(
@@ -66,8 +81,11 @@ export async function POST(req: Request) {
     const newTestimonial = await sql`
       INSERT INTO testimonials (name, message, rating, status, order_code)
       VALUES (${name.trim()}, ${message.trim()}, ${Number(rating)}, 'approved', ${order_code || null})
-      RETURNING *
+      RETURNING id, name, message, rating, status, order_code, created_at
     `;
+
+    // Invalidate testimonials cache
+    invalidateCache("api:testimonials");
 
     return NextResponse.json(
       {

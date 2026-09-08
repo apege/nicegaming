@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { invalidateCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,7 +23,7 @@ export async function PATCH(
     const { status, admin_reply } = body;
 
     const existing = await sql`
-      SELECT * FROM testimonials WHERE id::text = ${id} LIMIT 1
+      SELECT id, status, admin_reply FROM testimonials WHERE id::text = ${id} LIMIT 1
     `;
 
     if (existing.length === 0) {
@@ -51,6 +52,8 @@ export async function PATCH(
       RETURNING *
     `;
 
+    invalidateCache("api:testimonials");
+
     return NextResponse.json(
       {
         success: true,
@@ -77,6 +80,8 @@ export async function DELETE(
     await sql`
       DELETE FROM testimonials WHERE id::text = ${id}
     `;
+
+    invalidateCache("api:testimonials");
 
     return NextResponse.json(
       {
