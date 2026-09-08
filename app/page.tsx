@@ -46,57 +46,69 @@ export default function LandingPage() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const [prodRes, setRes] = await Promise.all([
+        const [prodRes, setRes] = await Promise.allSettled([
           fetch("/api/products"),
           fetch("/api/store-settings"),
         ]);
 
-        const prodJson = await prodRes.json();
-        if (prodJson.success && Array.isArray(prodJson.data) && prodJson.data.length > 0) {
-          const mapped: RobuxPackage[] = prodJson.data
-            .filter((p: any) => p.is_active !== false)
-            .map((p: any) => ({
-              id: Number(p.id),
-              robux: Number(p.robux),
-              price: Number(p.price),
-              priceFormatted: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
-              badge: p.badge || (p.robux === 240 ? "POPULER" : p.robux === 2200 ? "PROMO" : null),
-            }));
-          if (mapped.length > 0) {
-            setPackages(mapped);
-            setSelectedPackage(mapped[0]);
+        if (prodRes.status === "fulfilled" && prodRes.value.ok) {
+          try {
+            const prodJson = await prodRes.value.json();
+            if (prodJson.success && Array.isArray(prodJson.data) && prodJson.data.length > 0) {
+              const mapped: RobuxPackage[] = prodJson.data
+                .filter((p: any) => p.is_active !== false)
+                .map((p: any) => ({
+                  id: Number(p.id),
+                  robux: Number(p.robux),
+                  price: Number(p.price),
+                  priceFormatted: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
+                  badge: p.badge || (p.robux === 240 ? "POPULER" : p.robux === 2200 ? "PROMO" : null),
+                }));
+              if (mapped.length > 0) {
+                setPackages(mapped);
+                setSelectedPackage(mapped[0]);
+              }
+            }
+          } catch (e) {
+            console.warn("Failed to parse products JSON:", e);
           }
         }
 
-        const setJson = await setRes.json();
-        if (setJson.success && setJson.data) {
-          const d = setJson.data;
-          if (d.whatsapp_number) {
-            setAdminWhatsapp(d.whatsapp_number);
+        if (setRes.status === "fulfilled" && setRes.value.ok) {
+          try {
+            const setJson = await setRes.value.json();
+            if (setJson.success && setJson.data) {
+              const d = setJson.data;
+              if (d.whatsapp_number) {
+                setAdminWhatsapp(d.whatsapp_number);
+              }
+              if (d.store_name) {
+                setStoreName(d.store_name);
+              }
+              if (d.qris_image_path) {
+                setQrisImage(d.qris_image_path);
+              }
+              setPromoSettings({
+                isPromoActive: d.promo_active !== undefined ? Boolean(d.promo_active) : true,
+                promoRobux: d.promo_robux_amount
+                  ? Number(d.promo_robux_amount).toLocaleString("id-ID")
+                  : "2.200",
+                promoPrice: d.promo_discount_price
+                  ? Number(d.promo_discount_price).toLocaleString("id-ID")
+                  : "45.000",
+                promoNormalPrice: d.promo_original_label || "55.000",
+                promoEndDate: d.promo_end_date
+                  ? new Date(d.promo_end_date).toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "05 September 2026",
+              });
+            }
+          } catch (e) {
+            console.warn("Failed to parse store-settings JSON:", e);
           }
-          if (d.store_name) {
-            setStoreName(d.store_name);
-          }
-          if (d.qris_image_path) {
-            setQrisImage(d.qris_image_path);
-          }
-          setPromoSettings({
-            isPromoActive: d.promo_active !== undefined ? Boolean(d.promo_active) : true,
-            promoRobux: d.promo_robux_amount
-              ? Number(d.promo_robux_amount).toLocaleString("id-ID")
-              : "2.200",
-            promoPrice: d.promo_discount_price
-              ? Number(d.promo_discount_price).toLocaleString("id-ID")
-              : "45.000",
-            promoNormalPrice: d.promo_original_label || "55.000",
-            promoEndDate: d.promo_end_date
-              ? new Date(d.promo_end_date).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })
-              : "05 September 2026",
-          });
         }
       } catch (err) {
         console.error("Error loading store data:", err);

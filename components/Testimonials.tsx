@@ -16,6 +16,10 @@ export default function Testimonials({ storeName = "NiceGaming" }: TestimonialsP
     async function loadTestimonials() {
       try {
         const res = await fetch("/api/testimonials");
+        if (!res.ok) {
+          setTestimonials([]);
+          return;
+        }
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: TestimonialItem[] = json.data.map((row: any) => {
@@ -43,7 +47,7 @@ export default function Testimonials({ storeName = "NiceGaming" }: TestimonialsP
           setTestimonials([]);
         }
       } catch (err) {
-        console.error("Error loading testimonials:", err);
+        console.warn("Error loading testimonials:", err);
         setTestimonials([]);
       } finally {
         setIsLoading(false);
